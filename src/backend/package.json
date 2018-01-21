@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/XXXX"
+    "url": "git+https://github.com/hzhangxyz/pixelField"
   },
   "author": "Hao Zhang",
   "license": "GPLv3",
