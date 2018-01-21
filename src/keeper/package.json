@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/hzhangxyz/pixelField/issues"
   },
-  "homepage": "https://github.com/hzhangxyz/pixelField#readme"
+  "homepage": "https://github.com/hzhangxyz/pixelField#readme",
+  "dependencies": {
+    "mongodb": "^3.0.1"
+  }
 }
