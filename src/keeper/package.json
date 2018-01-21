@@ -1,0 +1,23 @@
+{
+  "name": "keeper-of-pixel-field",
+  "version": "1.0.0",
+  "description": "keeper used in both backend and frontend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/hzhangxyz/pixelField.git"
+  },
+  "keywords": [
+    "pixel",
+    "field"
+  ],
+  "author": "Hao Zhang",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/hzhangxyz/pixelField/issues"
+  },
+  "homepage": "https://github.com/hzhangxyz/pixelField#readme"
+}
