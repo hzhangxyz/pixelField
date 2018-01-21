@@ -1,6 +1,7 @@
 src/backend/node_modules
 src/backend/package-lock.json
 src/keeper/node_modules
+src/keeper/package-lock.json
 data/journal/
 data/log
 data/mongod.lock
