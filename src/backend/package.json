@@ -1,0 +1,21 @@
+{
+  "name": "backendOfPixelField",
+  "version": "1.0.0",
+  "description": "backend of pixelField",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "place"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XXXX"
+  },
+  "author": "Hao Zhang",
+  "license": "GPLv3",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}
