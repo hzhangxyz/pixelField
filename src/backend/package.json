@@ -16,6 +16,7 @@
   "author": "Hao Zhang",
   "license": "GPLv3",
   "dependencies": {
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "mongodb": "^3.0.1"
   }
 }
