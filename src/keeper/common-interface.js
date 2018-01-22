@@ -119,9 +119,30 @@ class TreeNode extends TimeLine{
       }
     }
   }
-  query(){
-
+  whetherOverlap(x1, y1, x2, y2){
+    var flag = false;
+    flag |= this.whetherInclude({x:x1, y:y1});
+    flag |= this.whetherInclude({x:x1, y:y2});
+    flag |= this.whetherInclude({x:x2, y:y1});
+    flag |= this.whetherInclude({x:x2, y:y2});
+    return flag;
   }
+  query(x1, y1, x2, y2, time){//only called by root node
+    if(this.father){
+      return this.father.query(x1, y1, x2, y2, time);
+    }else{
+      return this._query(x1, y1, x2, y2, time);
+    }
+  }
+  _query(x1, y1, x2, y2, time){
+    if(!this.whetherOverlap(x1, y1, x2, y2)){//不在的话
+      return [];
+    }else if(this.flag){//子叶的话
+      return this.__query(time);
+    }else{
+      return this.leftSon._query(x1 ,y1, x2, y2, time).concat(
+        this.rightSon._query(x1 ,y1, x2, y2, time));
+    }
 }
 
 tree = [new TreeNode(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null)];
