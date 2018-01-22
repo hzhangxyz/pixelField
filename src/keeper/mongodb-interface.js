@@ -9,7 +9,6 @@ async function getCollection(){
   var db = client.db(dbName);
   var collection = db.collection('tree');
   return [collection,async ()=>await client.close()]
-  //var res = await collection.insertMany([{'a':4}]);
 }
 
 class MongodbTreeNode extends commonInterface.TreeNode{
@@ -26,7 +25,7 @@ class MongodbTreeNode extends commonInterface.TreeNode{
       flag:this.flag,
       data:[],
       top:this.top,
-      father:"",
+      father:this.getId(this.father),
       leftSon:"",
       rightSon:""
     });
@@ -119,21 +118,15 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
 }
 
-async function test(){
-  var c = await getCollection();
-  var t = commonInterface.createRoot(MongodbTreeNode);
-  await t.init(c[0])
-  //await t.addPoint({x:0,y:0},{r:1,g:0,b:0},1)
-  //await t.addPoint({x:2,y:0},{r:1,g:0,b:0},2)
-  //await t.addPoint({x:2,y:0},{r:1,g:0,b:0},4)
-  await t.addPoint({x:0,y:100},{r:2,g:0,b:0},2)
-  await c[1]()
-}
+// 注意:
+// 偶尔对根进行findAncestor操作
+// 清理时间轴即执行fresh操作
+// TODOLIST
+// 从数据库中读取
 
-test().then((res)=>{
-  console.log(`correct with ${res}`);
-  process.exit(0);
-}).catch((res)=>{
-  console.log(`error with ${res}`);
-  process.exit(1)
-})
+module.exports = {
+  getCollection,
+  MongodbTreeNode,
+  edgeSize: commonInterface.edgeSize,
+  createRoot: commonInterface.createRoot
+}

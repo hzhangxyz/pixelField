@@ -85,8 +85,8 @@ class TreeNode extends TimeLine{
       this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this);
       this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this);
     }
-    await [this.leftSon.init(this.collection),
-      this.rightSon.init(this.collection)];
+    await Promise.all([this.leftSon.init(this.collection),
+      this.rightSon.init(this.collection)]);
   }
   async extend(){//only called by root node
     this.notExtended = true;
@@ -186,7 +186,7 @@ function createRoot(type){
   return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null);
 }
 
-module.exports={
+module.exports = {
   edgeSize,
   TreeNode,
   createRoot
