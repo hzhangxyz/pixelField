@@ -1,10 +1,5 @@
 var edgeSize = 128;
 
-var inNode = false;
-if(this.global == this){
-  inNode = True;
-}
-
 class TimeLine{
   constructor(){
     this.data = Array(edgeSize*edgeSize*2);
@@ -150,11 +145,20 @@ class TreeNode extends TimeLine{
         this.rightSon._query(x1 ,y1, x2, y2, time));
     }
   }
+  findAncestor(){
+    if(!this.father){
+      return this;
+    }else{
+      return this.father.findAncestor();
+    }
+  }
 }
 
-var treeRoot = new TreeNode(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null);
+function createRoot(){
+  return new TreeNode(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null);
+}
 
 module.exports={
   TreeNode,
-  treeRoot
+  createRoot
 }
