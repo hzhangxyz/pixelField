@@ -17,7 +17,7 @@ class TimeLine{
         this.data[i] = {abandoned: true};
       }
     }
-    this.topx++;
+    this.top++;
   }
   __query(time){
     var res = [];
@@ -47,6 +47,7 @@ class TimeLine{
 class TreeNode extends TimeLine{
   constructor(x1, y1, x2, y2, father){
     // id? x1 y1 x2 y2 leftSon rightSon father flag data top
+    super();
     this.x1 = x1;
     this.y1 = y1;
     this.x2 = x2;
@@ -55,7 +56,6 @@ class TreeNode extends TimeLine{
     this.rightSon = null;
     this.father = father;
     this.flag = (x2 - x1)==edgeSize-1 && (y2 - y1)==edgeSize-1 // True if it is unit
-    super();
   }
   whetherInclude(point){
     return this.x1<=point.x && point.x<=this.x2 && this.y1<=point.y && point.y<=this.y2;
@@ -64,6 +64,7 @@ class TreeNode extends TimeLine{
     if(this.flag){
       return;
     }
+    var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
       this.leftSon = this.leftSon || new TreeNode(x1, y1, x2, (y1+y2+1)/2-1, this);
       this.rightSon = this.rightSon || new TreeNode(x1, (y1+y2+1)/2, x2, y2, this);
@@ -76,21 +77,26 @@ class TreeNode extends TimeLine{
     if(this.father){
       return;
     }
+    var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
         //left;
         this.father = new TreeNode(2*x1-x2-1, y1, x2, y2, null);
+        this.father.leftSon = this;
       }else{
         //right
         this.father = new TreeNode(x1, y1, 2*x2-x1+1, y2, null);
+        this.father.leftSon = this;
       }
     }else{
       if(y2+y1>0){
         //bottom
         this.father = new TreeNode(x1, 2*y1-y2-1, x2, y2, null);
+        this.father.leftSon = this;
       }else{
         //top
         this.father = new TreeNode(x1, y1, x2, 2*y2-y1+1, null);
+        this.father.leftSon = this;
       }
     }
     this.father.split();
@@ -143,17 +149,12 @@ class TreeNode extends TimeLine{
       return this.leftSon._query(x1 ,y1, x2, y2, time).concat(
         this.rightSon._query(x1 ,y1, x2, y2, time));
     }
+  }
 }
 
-tree = [new TreeNode(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null)];
-treeTop = 0;
+var treeRoot = new TreeNode(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null);
 
-
-function addPoint(point, color){
-  tree.search(point, color)
-    .add(point, color);
-}
-
-function query(x, y){
-
+module.exports={
+  TreeNode,
+  treeRoot
 }
