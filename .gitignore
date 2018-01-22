@@ -1,9 +1,7 @@
-src/backend/node_modules
-src/backend/package-lock.json
-src/keeper/node_modules
-src/keeper/package-lock.json
+node_modules
+package-lock.json
 data/journal/
 data/log
 data/mongod.lock
-data/local.0
-data/local.ns
+data/*.0
+data/*.ns
