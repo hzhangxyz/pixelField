@@ -1,6 +1,7 @@
 var mod = require("./common-interface.js")
 tree = mod.createRoot()
 tree.addPoint({x:0,y:0},{r:0,g:0,b:0},0)
+console.log(JSON.stringify(tree))
 tree.addPoint({x:0,y:100},{r:0,g:0,b:0},0)
 tree = tree.findAncestor()
 console.log(tree)

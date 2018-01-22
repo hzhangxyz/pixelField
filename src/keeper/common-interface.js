@@ -159,6 +159,7 @@ function createRoot(){
 }
 
 module.exports={
+  edgeSize,
   TreeNode,
   createRoot
 }
