@@ -17,7 +17,6 @@ class MongodbTreeNode extends commonInterface.TreeNode{
     super(x1, y1, x2, y2, father);
   }
   async init(col){
-    console.log(this.x1)
     this.collection = col;
     var res = await this.collection.insert({
       x1:this.x1,
@@ -35,9 +34,9 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
   getId(node){
     if(node){
-      return node.id
+      return node.id;
     }else{
-      return ""
+      return null;
     }
   }
   async save_node(){
@@ -104,14 +103,14 @@ class MongodbTreeNode extends commonInterface.TreeNode{
     await this.save_point();
   }
   async split(){
-    super.split()
+    await super.split()
     if(!this.notSplited){
       this.save_node();
       this.notSplited = true;
     }
   }
   async extend(){
-    super.extend()
+    await super.extend()
     if(!this.notExtended){
       this.father.save_node();
       this.save_node();
@@ -132,7 +131,9 @@ async function test(){
 }
 
 test().then((res)=>{
+  console.log(`correct with ${res}`);
   process.exit(0);
 }).catch((res)=>{
+  console.log(`error with ${res}`);
   process.exit(1)
 })

@@ -56,19 +56,27 @@ class TreeNode extends TimeLine{
     this.leftSon = null;
     this.rightSon = null;
     this.father = father;
-    this.flag = (x2 - x1)==edgeSize-1 && (y2 - y1)==edgeSize-1 // True if it is unit
+    this.flag = (x2 - x1)<=edgeSize-1 && (y2 - y1)<=edgeSize-1 // True if it is unit
     this.collection = null;
   }
   async init(n){
+  }
+  format(){
+    return `node x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`
+  }
+  show(){
+    console.log(this.format())
   }
   whetherInclude(point){
     return this.x1<=point.x && point.x<=this.x2 && this.y1<=point.y && point.y<=this.y2;
   }
   async split(){// not called by leaf
-    if(this.flag){
+    this.notSplited = true;
+    if(this.flag || this.leftSon){
       return;
     }
-    this.notSplited = this.leftSon && this.rightSon;
+    //console.log(`split x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`)
+    this.notSplited = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
       this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this);
@@ -77,42 +85,44 @@ class TreeNode extends TimeLine{
       this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this);
       this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this);
     }
-    await this.father.init(this.collection);
-    await this.father.rightSon.init(this.collection)
+    await [this.leftSon.init(this.collection),
+      this.rightSon.init(this.collection)];
   }
   async extend(){//only called by root node
+    this.notExtended = true;
     if(this.father){
       return;
     }
-    this.notExtended = false
+    //console.log(`extend x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`)
+    this.notExtended = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
         //left;
         this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x2-1, y2, this.father);
+        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father);
       }else{
         //right
         this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1+1, y1, 2*x2-x1+1, y2, this.father);
+        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father);
       }
     }else{
       if(y2+y1>0){
         //bottom
         this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y2-1, this.father);
+        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father);
       }else{
         //top
         this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, y1+1, x2, 2*y2-y1+1, this.father);
+        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father);
       }
     }
-    await this.father.init(this.collection)
-    await this.father.rightSon.init(this.collection)
+    await this.father.init(this.collection);
+    await this.father.rightSon.init(this.collection);
   }
   async _addPoint(point, color, time){
     if(this.flag){
