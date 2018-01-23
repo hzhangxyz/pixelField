@@ -30,6 +30,28 @@ class LocalStorageTreeNode extends TreeNode{
       return null;
     }
   }
+  async freshAll(){
+    if(this.father){
+      await this.father.freshAll();
+    }else{
+      await this._freshAll();
+    }
+  }
+  async _freshAll(){
+    if(this.leftSon){
+      var a = this.leftSon._freshAll();
+    }
+    if(this.rightSon){
+      var b = this.rightSon._freshAll();
+    }
+    await this.fresh();
+    if(this.leftSon){
+      await a;
+    }
+    if(this.rightSon){
+      await b;
+    }
+  }
   async save_point(){
     await this.save();
   }
