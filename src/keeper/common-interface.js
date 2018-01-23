@@ -4,6 +4,7 @@ class TimeLine{
   constructor(){
     this.data = [];//Array(edgeSize*edgeSize*2);
     this.top = 0;
+    this.inited = false;
   }
   async __addPoint(point, color, time){
     this.dataModified = [];
@@ -15,6 +16,7 @@ class TimeLine{
       }
     }
     this.top++;
+    await this.save_point();
   }
   async __query(time){
     var res = [];
@@ -30,6 +32,7 @@ class TimeLine{
     return res
   }
   async fresh(){
+    await this.init()
     var newTop=0;
     var tmpData = [];
     for(var oldTop=0;oldTop<this.top;oldTop++){
@@ -37,11 +40,24 @@ class TimeLine{
         delete this.data[oldTop]
         continue;
       }
-      tmpdata[newTop++] = this.data[oldTop];
+      tmpData[newTop++] = this.data[oldTop];
     }
     this.top = newTop;
     delete this.data;
     this.data = tmpData
+    await this.save_fresh()
+  }
+  async init(){//load data
+    if(this.inited){
+      return
+    }
+    this.inited = true;
+  }
+  async save_node(){//change info
+  }
+  async save_point(){//change some data
+  }
+  async save_fresh(){//change all data
   }
 }
 
@@ -58,12 +74,8 @@ class TreeNode extends TimeLine{
     this.father = father;
     this.flag = (x2 - x1)<=edgeSize-1 && (y2 - y1)<=edgeSize-1 // True if it is unit
     this.collection = collection;
-    this.tree = tree
-    tree.push(this)
-    this.inited = false
-  }
-  async init(){
-    tree.inited = true
+    this.tree = tree;
+    //tree.push(this);/// ??? 需要节点列表么?
   }
   format(){
     return `node x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`
@@ -75,12 +87,10 @@ class TreeNode extends TimeLine{
     return this.x1<=point.x && point.x<=this.x2 && this.y1<=point.y && point.y<=this.y2;
   }
   async split(){// not called by leaf
-    this.notSplited = true;
     if(this.flag || this.leftSon){
       return;
     }
     //console.log(`split x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`)
-    this.notSplited = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
       this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.tree, this.collection);
@@ -89,14 +99,14 @@ class TreeNode extends TimeLine{
       this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.tree, this.collection);
       this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.tree, this.collection);
     }
+    await Promise.all([this.leftSon.init(),this.rightSon.init()]);
+    await this.save_node();
   }
   async extend(){//only called by root node
-    this.notExtended = true;
     if(this.father){
       return;
     }
     //console.log(`extend x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`)
-    this.notExtended = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
@@ -123,8 +133,11 @@ class TreeNode extends TimeLine{
         this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.tree, this.collection);
       }
     }
+    await Promise.all([this.father.init(),this.father.rightSon.init()]);
+    await Promise.all([this.save_node(),this.father.save_node(),this.father.rightSon.save_node()])
   }
   async _addPoint(point, color, time){
+    await this.init()
     if(this.flag){
       await this.__addPoint(point, color, time);
     }else{
@@ -139,7 +152,7 @@ class TreeNode extends TimeLine{
   async addPoint(point, color, time){//only called by root node
     await this.init()
     if(this.father){
-      await this.father.addPoint();
+      await this.father.addPoint(point, color, time);
     }else{
       if(this.whetherInclude(point)){
         await this._addPoint(point, color, time);
@@ -157,15 +170,8 @@ class TreeNode extends TimeLine{
     flag |= this.whetherInclude({x:x2, y:y2});
     return flag;
   }
-  async query(x1, y1, x2, y2, time){//only called by root node
-    await this.init()
-    if(this.father){
-      return await this.father.query(x1, y1, x2, y2, time);
-    }else{
-      return await this._query(x1, y1, x2, y2, time);
-    }
-  }
   async _query(x1, y1, x2, y2, time){
+    await this.init()
     if(!this.whetherOverlap(x1, y1, x2, y2)){//不在的话
       return [];
     }else if(this.flag){//子叶的话
@@ -176,8 +182,15 @@ class TreeNode extends TimeLine{
       return a.concat(b);
     }
   }
-  async findAncestor(){
+  async query(x1, y1, x2, y2, time){//only called by root node
     await this.init()
+    if(this.father){
+      return await this.father.query(x1, y1, x2, y2, time);
+    }else{
+      return await this._query(x1, y1, x2, y2, time);
+    }
+  }
+  async findAncestor(){
     if(!this.father){
       return this;
     }else{
@@ -186,10 +199,8 @@ class TreeNode extends TimeLine{
   }
 }
 
-function createTree(type, col){
-  var tree = [];
-  new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree,col);
-  return tree
+function createTree(type, tree, col){
+  return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree,col);
 }
 
 module.exports = {

@@ -22,3 +22,21 @@
 树结构需要一个指针指向根节点,细节:
 兄弟方向, 两个儿子, xy范围, 是否为元范围, 时间轴指针
 螺旋型往外增长
+
+-----
+
+constructor 加载info
+init        加载data
+save_point  改变一些data
+save_node   改变info
+save_fresh  改变data
+
+-----
+
+计划任务:
+  findAncestor
+  fresh
+  数据库改变后需要对所有节点disinit, init
+  disinit 可清除长时间无用的data
+
+哪些await是可以等一会await的?
