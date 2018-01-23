@@ -119,6 +119,6 @@ async function recovery(col, id){
   }
 }
 
-async function clear(col){
+async function clearData(col){
   col.clear();
 }

@@ -1,7 +1,45 @@
-<p>loading<span id="dots">.</span></p>
+<script src="./common-interface.js"></script>
+<script src="./local-storage-interface.js"></script>
+<script src="https://cdn.bootcss.com/two.js/0.7.0-alpha.1/two.min.js"></script>
+
+<script src="./local-storage-interface-test.js"></script>
+
+<body></body>
+
 <script>
-var dots = document.getElementById("dots");
-var addPoint = setInterval(()=>{dots.innerText += ".";}, 300);
+var params = {
+  fullscreen: true,
+  type: Two.Types.canvas,
+  autostart: true
+};
+var two = new Two(params).appendTo(document.body);
+
+var unitSize = 40;
+var offsetX = two.width/2;
+var offsetY = two.height/2;
+
+var group = two.makeGroup();
+
+function createPoint(x, y, r, g, b, group, two){
+  var rect = two.makeRectangle(x*unitSize, y*unitSize, unitSize, unitSize);
+  rect.fill = `rgb(${r},${g},${b})`
+  rect.noStroke()
+  group.add(rect)
+}
+
+async function freshCanvas(){
+  var t = await recovery(localStorage);
+  var l = await t.query(-10,10,-10,10);
+  for(var i of l){
+    createPoint(i.x,i.y,i.r,i.g,i.b,group,two);
+  }
+}
+freshCanvas()
+
+createPoint(0,0,140,250,150,group,two)
+
+
+group.translation.set(offsetX, offsetY);
+//拖动的时候...
 </script>
-<canvas>
-</canvas>
+

@@ -16,7 +16,7 @@ class TimeLine{
     }
     await this.save_point();
   }
-  async __query(time){
+  async __query(time=0){
     var res = [];
     for(var i=this.data.length-1;i>=0;i--){
       if(this.data[i].abandoned){
@@ -213,6 +213,4 @@ if(isNode){
     TreeNode,
     createTree
   }
-}else{
-  console.log("edgeSize, TreeNode, createTree")
 }
