@@ -82,7 +82,6 @@ async function recovery(col, id){
     if(i.slice(0,prefixLength)==prefix){
       var tmp = JSON.parse(col[i]);
       meta[i] = new LocalStorageTreeNode(tmp.x1, tmp.y1, tmp.x2, tmp.y2, null, col);
-      meta[i].data = tmp.data;
       meta[i]._father = tmp.father;
       meta[i]._leftSon = tmp.leftSon;
       meta[i]._rightSon = tmp.rightSon;

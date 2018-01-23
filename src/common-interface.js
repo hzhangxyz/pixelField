@@ -73,7 +73,7 @@ class TreeNode extends TimeLine{
     //tree.push(this);/// ??? 需要节点列表么?
   }
   format(){
-    return `node x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`
+    return `node x1:${this.x1}, y1:${this.y1}, x2:${this.x2}, y2:${this.y2} ${this.flag?"F":""}`
   }
   show(){
     console.log(this.format())
@@ -158,11 +158,7 @@ class TreeNode extends TimeLine{
     }
   }
   whetherOverlap(x1, y1, x2, y2){
-    var flag = false;
-    flag |= this.whetherInclude({x:x1, y:y1});
-    flag |= this.whetherInclude({x:x1, y:y2});
-    flag |= this.whetherInclude({x:x2, y:y1});
-    flag |= this.whetherInclude({x:x2, y:y2});
+    var flag = x2 >= this.x1 && x1 <= this.x2 && y1 <= this.y2 && y2 >= this.y1
     return flag;
   }
   async _query(x1, y1, x2, y2, time){
@@ -172,8 +168,12 @@ class TreeNode extends TimeLine{
     }else if(this.flag){//子叶的话
       return await this.__query(time);
     }else{
-      var [a, b] = await Promise.all([this.leftSon._query(x1 ,y1, x2, y2, time), this.rightSon._query(x1 ,y1, x2, y2, time)]);
-      return a.concat(b);
+      if(this.leftSon){
+        var [a, b] = await Promise.all([this.leftSon._query(x1 ,y1, x2, y2, time), this.rightSon._query(x1 ,y1, x2, y2, time)]);
+        return a.concat(b);
+      }else{
+        return [];
+      }
     }
   }
   async query(x1, y1, x2, y2, time){//only called by root node

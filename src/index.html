@@ -1,25 +1,46 @@
 <script src="./common-interface.js"></script>
 <script src="./local-storage-interface.js"></script>
 <script src="https://cdn.bootcss.com/two.js/0.7.0-alpha.1/two.min.js"></script>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="./local-storage-interface-test.js"></script>
 
-<body></body>
+<body>
+  <div id="loading"><p style="margin: 0;position: fixed">loading.<span id=dots></span></p></div>
+  <div id="loaded" style="display: none">
+    <div id=container></div>
+    <div id=picker style="padding: 5;position: fixed;">
+      <input type=color id=color></input>
+      <button id=button>color it</button>
+    </div>
+  </div>
+</body>
 
 <script>
+
+var dotter = setInterval(()=>{document.getElementById("dots").innerText+="."},300);
+
+// 准备画布
 var params = {
   fullscreen: true,
   type: Two.Types.canvas,
   autostart: true
 };
-var two = new Two(params).appendTo(document.body);
+var two = new Two(params).appendTo(document.getElementById("container"));
 
-var unitSize = 40;
+var unitSize = 20;
+var cacheParam = 2
 var offsetX = two.width/2;
 var offsetY = two.height/2;
 
 var group = two.makeGroup();
 
+// 更新画布位置
+two.bind('update',()=>{
+  group.translation.set(offsetX, offsetY);
+})
+
+// 更新画布内容
 function createPoint(x, y, r, g, b, group, two){
   var rect = two.makeRectangle(x*unitSize, y*unitSize, unitSize, unitSize);
   rect.fill = `rgb(${r},${g},${b})`
@@ -27,19 +48,48 @@ function createPoint(x, y, r, g, b, group, two){
   group.add(rect)
 }
 
-async function freshCanvas(){
-  var t = await recovery(localStorage);
-  var l = await t.query(-10,10,-10,10);
+function getRange(){
+  var w = two.width/unitSize;
+  var h = two.height/unitSize;
+  var x = -offsetX/unitSize;
+  var y = -offsetY/unitSize;
+  res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
+  return res
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function freshCanvas(tree,group){
+  if(!tree){
+    console.log("Read From Storage")
+    tree = await recovery(localStorage);
+  }
+  var l = await tree.query(...getRange());
+  var g = group.children.map((n)=>n)
   for(var i of l){
     createPoint(i.x,i.y,i.r,i.g,i.b,group,two);
   }
+  g.map((n)=>n.remove());
+  return tree
 }
-freshCanvas()
 
-createPoint(0,0,140,250,150,group,two)
+var tree = null;
+freshCanvas(null, group).then((n)=>{
+  tree = n;
+  $("#loaded").css("display","block")
+  $("#loading").css("display","none")
+  clearInterval(dotter)
+  setInterval(()=>freshCanvas(tree, group),1000)
+  // loaded
+})
 
-
-group.translation.set(offsetX, offsetY);
 //拖动的时候...
+
+//color it
+
+//来自服务器的更新
+
 </script>
 
