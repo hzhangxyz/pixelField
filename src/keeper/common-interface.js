@@ -197,8 +197,22 @@ function createTree(type, col){
   return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,col);
 }
 
-module.exports = {
-  edgeSize,
-  TreeNode,
-  createTree
+
+var isNode = false;
+if (typeof process === 'object') {
+  if (typeof process.versions === 'object') {
+    if (typeof process.versions.node !== 'undefined') {
+      isNode = true;
+    }
+  }
+}
+
+if(isNode){
+  module.exports = {
+    edgeSize,
+    TreeNode,
+    createTree
+  }
+}else{
+  console.log("edgeSize, TreeNode, createTree")
 }

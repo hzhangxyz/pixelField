@@ -12,8 +12,8 @@ async function getCollection(){
 }
 
 class MongodbTreeNode extends commonInterface.TreeNode{
-  //constructor(x1, y1, x2, y2, father, tree, col){
-  //  super(x1, y1, x2, y2, father, tree, col);
+  //constructor(x1, y1, x2, y2, father, col){
+  //  super(x1, y1, x2, y2, father, col);
   //}
   async init(){
     if(this.inited){
@@ -29,10 +29,10 @@ class MongodbTreeNode extends commonInterface.TreeNode{
         x2:this.x2,
         y2:this.y2,
         flag:this.flag,
-        data:[],
+        data:this.data,
         father:this.getId(this.father),
-        leftSon:null,
-        rightSon:null
+        leftSon:this.getId(this.leftSon),
+        rightSon:this.getId(this.rightSon)
       });
       this.id = res.ops[0]._id;
     }
@@ -45,7 +45,11 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
   getId(node){
     if(node){
-      return node.id;
+      if(node.id){
+        return node.id;
+      }else{
+        return null;
+      }
     }else{
       return null;
     }
@@ -141,7 +145,7 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
 }
 
-async function recovery(col){
+async function recovery(col, id){
   var meta = await col.find({},{projection:{data:0}}).toArray();
   var dict = {}
   var pool = meta.map((i)=>{
@@ -170,7 +174,16 @@ async function recovery(col){
   if(pool.length==0){
     return null;
   }else{
+    if(id){
+      for(var i of pool){
+        if(i.id == id){
+          return await i.findAncestor();
+        }
+      }
+      return null;
+    }else{
     return await pool[0].findAncestor();
+    }
   }
 }
 
