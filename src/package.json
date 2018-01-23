@@ -1,7 +1,7 @@
 {
-  "name": "keeper-of-pixel-field",
+  "name": "pixel-field",
   "version": "1.0.0",
-  "description": "keeper used in both backend and frontend",
+  "description": "pixel field",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/hzhangxyz/pixelField#readme",
   "dependencies": {
+    "express": "^4.16.2",
     "mongodb": "^3.0.1"
   }
 }
