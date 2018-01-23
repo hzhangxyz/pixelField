@@ -143,12 +143,13 @@ $("#button").click(()=>{
     g:parseInt(color.substr(3,2),16),
     b:parseInt(color.substr(5,2),16)
   },Date.now())
-  freshCanvas()
+  freshCanvas(tree, group)
 })
 
 $("#clear").click(()=>{
   clearData(localStorage);
   tree = createTree(LocalStorageTreeNode,localStorage);
+  freshCanvas(tree, group)
 })
 
 //来自服务器的更新
