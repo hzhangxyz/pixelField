@@ -12,8 +12,8 @@ async function getCollection(){
 }
 
 class MongodbTreeNode extends commonInterface.TreeNode{
-  constructor(x1, y1, x2, y2, father){
-    super(x1, y1, x2, y2, father);
+  constructor(x1, y1, x2, y2, father, tree){
+    super(x1, y1, x2, y2, father, tree);
   }
   async init(col){
     if(this.collection){
@@ -29,8 +29,8 @@ class MongodbTreeNode extends commonInterface.TreeNode{
       data:[],
       top:this.top,
       father:this.getId(this.father),
-      leftSon:"",
-      rightSon:""
+      leftSon:null,
+      rightSon:null
     });
     this.id = res.ops[0]._id;
   }
@@ -130,29 +130,28 @@ class MongodbTreeNode extends commonInterface.TreeNode{
 // 清理时间轴即执行fresh操作
 // TODOLIST
 // 从数据库中读取
+// 哪些await是可以等一会await的?
 
 class ReadNode extends MongodbTreeNode{
   constructor(id, tree){
-    this.id = id;
-    this.tree = tree;
     for(var i of tree){
-      if(i.id == id){
-        this.fromMem = true;
+      if(i &&(id.equals(i.id))){
         return i
       }
     }
-    this.fromMem = false;
+    super(0,0,0,0,null,tree)
+    this.id = id;
   }
   async init(col){//what if 已经在内存里了?
     if(this.collection){
       return
     }
-    if(this.fromMem = true){
-      super.init();
-      return
-    }
+    //if(this.fromMem = true){
+    //  await super.init();
+    //  return
+    //}
     this.collection = col;
-    var meta = await col.find({_id:this.id});
+    var meta = await this.collection.findOne({_id:this.id});
     this.x1 = meta.x1;
     this.y1 = meta.y1;
     this.x2 = meta.x2;
@@ -160,15 +159,28 @@ class ReadNode extends MongodbTreeNode{
     this.data = meta.data;
     this.flag = meta.flag;
     this.top = meta.top;
-    this.father = new ReadNode(meta.father, this.tree);
-    this.leftSon = new ReadNode(meta.leftSon, this.tree);
-    this.rightSon = new ReadNode(meta.rightSon, this.tree);
+    if(meta.father == null){
+      this.father = null;
+    }else{
+      this.father = new ReadNode(meta.father, this.tree);
+    }
+    if(meta.leftSon == null){
+      this.leftSon = null;
+    }else{
+      this.leftSon = new ReadNode(meta.leftSon, this.tree);
+    }
+    if(meta.rightSon == null){
+      this.rightSon = null;
+    }else{
+      this.rightSon = new ReadNode(meta.rightSon, this.tree);
+    }
   }
 }
 
 module.exports = {
   getCollection,
   MongodbTreeNode,
+  ReadNode,
   edgeSize: commonInterface.edgeSize,
-  createRoot: commonInterface.createRoot
+  createTree: commonInterface.createTree
 }

@@ -46,7 +46,7 @@ class TimeLine{
 }
 
 class TreeNode extends TimeLine{
-  constructor(x1, y1, x2, y2, father){
+  constructor(x1, y1, x2, y2, father, tree){
     // id? x1 y1 x2 y2 leftSon rightSon father flag data top
     super();
     this.x1 = x1;
@@ -58,6 +58,8 @@ class TreeNode extends TimeLine{
     this.father = father;
     this.flag = (x2 - x1)<=edgeSize-1 && (y2 - y1)<=edgeSize-1 // True if it is unit
     this.collection = null;
+    this.tree = tree
+    tree.push(this)
   }
   async init(n){
   }
@@ -79,11 +81,11 @@ class TreeNode extends TimeLine{
     this.notSplited = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this);
-      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.tree);
+      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this, this.tree);
     }else{
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this);
-      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.tree);
+      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.tree);
     }
     await Promise.all([this.leftSon.init(this.collection),
       this.rightSon.init(this.collection)]);
@@ -99,26 +101,26 @@ class TreeNode extends TimeLine{
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
         //left;
-        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null);
+        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null, this.tree);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father);
+        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father, this.tree);
       }else{
         //right
-        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null);
+        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null, this.tree);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father);
+        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father, this.tree);
       }
     }else{
       if(y2+y1>0){
         //bottom
-        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null);
+        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null, this.tree);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father);
+        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father, this.tree);
       }else{
         //top
-        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null);
+        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null, this.tree);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father);
+        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.tree);
       }
     }
     await this.father.init(this.collection);
@@ -169,8 +171,9 @@ class TreeNode extends TimeLine{
     }else if(this.flag){//子叶的话
       return await this.__query(time);
     }else{
-      return (await this.leftSon._query(x1 ,y1, x2, y2, time)).concat(
-        await this.rightSon._query(x1 ,y1, x2, y2, time));
+      a, b = await Promise.all[this.leftSon._query(x1 ,y1, x2, y2, time),
+        await this.rightSon._query(x1 ,y1, x2, y2, time)];
+      return a.concat(b);
     }
   }
   async findAncestor(){
@@ -182,12 +185,14 @@ class TreeNode extends TimeLine{
   }
 }
 
-function createRoot(type){
-  return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null);
+function createTree(type){
+  var tree = [];
+  new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree);
+  return tree
 }
 
 module.exports = {
   edgeSize,
   TreeNode,
-  createRoot
+  createTree
 }
