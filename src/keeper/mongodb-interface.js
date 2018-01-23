@@ -22,16 +22,14 @@ class MongodbTreeNode extends commonInterface.TreeNode{
     if(this.id){
       var meta = await this.collection.findOne({_id:this.id});
       this.data = meta.data;
-      this.top = meta.top;
     }else{
-      var res = await this.collection.insert({
+      var res = await this.collection.insertOne({
         x1:this.x1,
         y1:this.y1,
         x2:this.x2,
         y2:this.y2,
         flag:this.flag,
         data:[],
-        top:this.top,
         father:this.getId(this.father),
         leftSon:null,
         rightSon:null
@@ -42,9 +40,7 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
   async disinit(){
     delete this.data;
-    delete this.top;
-    this.top = 0;
-    this.data = []
+    this.data = [];
     this.inited = false;
   }
   getId(node){
@@ -56,17 +52,17 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   }
   async save_node(){
     //fresh father and son
-    await this.collection.update({_id:this.id},{
+    await this.collection.updateOne({_id:this.id},{
       $set:{
         father:this.getId(this.father),
         leftSon:this.getId(this.leftSon),
         rightSon:this.getId(this.rightSon)
       }
-    })
+    });
   }
   timeLinePointConverter(i, notFresh=true){
     if(this.data[i].abandoned && notFresh){
-      return {abandoned:true}
+      return {abandoned:true};
     }else{
       return{
         x:this.data[i].x,
@@ -76,7 +72,7 @@ class MongodbTreeNode extends commonInterface.TreeNode{
         b:this.data[i].b,
         t:this.data[i].t,
         abandoned:this.data[i].abandoned
-      }
+      };
     }
   }
   async save_point(){
@@ -87,18 +83,15 @@ class MongodbTreeNode extends commonInterface.TreeNode{
         setter[`data.${i}`] = this.timeLinePointConverter(i);
       }
       this.dataModified = [];
-      await this.collection.update({_id:this.id},{
+      await this.collection.updateOne({_id:this.id},{
         $set: setter
       });
     }
-    await this.collection.update({_id:this.id},{
+    await this.collection.updateOne({_id:this.id},{
       $push: {
-        data: this.timeLinePointConverter(this.top-1)
-      },
-      $set: {
-        top: this.top
+        data: this.timeLinePointConverter(this.data.length-1)
       }
-    })
+    });
   }
   async save_fresh(){
     //fresh all data
@@ -106,21 +99,84 @@ class MongodbTreeNode extends commonInterface.TreeNode{
     //for(var i=0;i<this.top;i++){
     //  data.push(this.timeLinePointConverter(i,false));
     //}
-    //await this.collection.update({_id:this.id},{
+    //await this.collection.updateOne({_id:this.id},{
     //  $set: {
     //    data,
     //    top: this.top
     //  }
     //})
-    console.log("freshing")
-    await this.collection.update({_id:this.id},
+    await this.collection.updateOne({_id:this.id},{
+      $pull: {data: {abandoned: true}}
+    },
+      {multi: true});
+  }
+  async freshAll(){
+    await this.collection.update({},
       {$pull: {data: {abandoned: true}}},
-      {multi: true})
+      {multi: true});// 改变top...
+    await this._freshAll();
+  }
+  async _freshAll(){
+    if(this.father){
+      await this.father._freshAll();
+    }else{
+      await this.__freshAll();
+    }
+  }
+  async __freshAll(){
+    if(this.leftSon){
+      var a = this.leftSon.__freshAll();
+    }
+    if(this.rightSon){
+      var b = this.rightSon.__freshAll();
+    }
+    await this.disinit();
+    await this.init();
+    if(this.leftSon){
+      await a;
+    }
+    if(this.rightSon){
+      await b;
+    }
+  }
+}
+
+async function recovery(col){
+  var meta = await col.find({},{projection:{data:0}}).toArray();
+  var dict = {}
+  var pool = meta.map((i)=>{
+    var node = new MongodbTreeNode(i.x1, i.y1, i.x2, i.y2, null, col);
+    node.id = i._id;
+    node._father = i.father;
+    node._leftSon = i.leftSon;
+    node._rightSon = i.rightSon;
+    dict[node.id] = node;
+    return node;
+  })
+  for(var i of pool){
+    if(i._father){
+      i.father = dict[i._father];
+    }
+    if(i._leftSon){
+      i.leftSon = dict[i._leftSon];
+    }
+    if(i._rightSon){
+      i.rightSon = dict[i._rightSon];
+    }
+    delete i._father;
+    delete i._leftSon;
+    delete i._rightSon;
+  }
+  if(pool.length==0){
+    return null;
+  }else{
+    return await pool[0].findAncestor();
   }
 }
 
 module.exports = {
   getCollection,
+  recovery,
   MongodbTreeNode,
   edgeSize: commonInterface.edgeSize,
   createTree: commonInterface.createTree

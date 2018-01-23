@@ -3,24 +3,22 @@ var edgeSize = 128;
 class TimeLine{
   constructor(){
     this.data = [];//Array(edgeSize*edgeSize*2);
-    this.top = 0;
     this.inited = false;
   }
   async __addPoint(point, color, time){
     this.dataModified = [];
     this.data.push({x:point.x, y:point.y, r:color.r, g:color.g, b:color.b, t:time, abandoned:false});
-    for(var i=0;i<this.top;i++){
+    for(var i=0;i<this.data.length-1;i++){
       if(this.data[i] && this.data[i].x==point.x && this.data[i].y==point.y){
         this.data[i] = {abandoned: true};
         this.dataModified.push(i);
       }
     }
-    this.top++;
     await this.save_point();
   }
   async __query(time){
     var res = [];
-    for(var i=this.top-1;i>=0;i--){
+    for(var i=this.data.length-1;i>=0;i--){
       if(this.data[i].abandoned){
         continue;
       }
@@ -33,16 +31,13 @@ class TimeLine{
   }
   async fresh(){
     await this.init()
-    var newTop=0;
     var tmpData = [];
-    for(var oldTop=0;oldTop<this.top;oldTop++){
-      if(this.data[oldTop].abandoned){
-        delete this.data[oldTop]
+    for(var i of this.data){
+      if(i.abandoned){
         continue;
       }
-      tmpData[newTop++] = this.data[oldTop];
+      tmpData.push(i);
     }
-    this.top = newTop;
     delete this.data;
     this.data = tmpData
     await this.save_fresh()
@@ -62,7 +57,7 @@ class TimeLine{
 }
 
 class TreeNode extends TimeLine{
-  constructor(x1, y1, x2, y2, father, tree, collection){
+  constructor(x1, y1, x2, y2, father, collection){
     // id? x1 y1 x2 y2 leftSon rightSon father flag data top
     super();
     this.x1 = x1;
@@ -74,7 +69,7 @@ class TreeNode extends TimeLine{
     this.father = father;
     this.flag = (x2 - x1)<=edgeSize-1 && (y2 - y1)<=edgeSize-1 // True if it is unit
     this.collection = collection;
-    this.tree = tree;
+    //this.tree = tree;
     //tree.push(this);/// ??? 需要节点列表么?
   }
   format(){
@@ -93,11 +88,11 @@ class TreeNode extends TimeLine{
     //console.log(`split x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`)
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.tree, this.collection);
-      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this, this.tree, this.collection);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.collection);
+      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this, this.collection);
     }else{
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.tree, this.collection);
-      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.tree, this.collection);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.collection);
+      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.collection);
     }
     await Promise.all([this.leftSon.init(),this.rightSon.init()]);
     await this.save_node();
@@ -111,26 +106,26 @@ class TreeNode extends TimeLine{
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
         //left;
-        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null, this.tree, this.collection);
+        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father, this.tree, this.collection);
+        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father, this.collection);
       }else{
         //right
-        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null, this.tree, this.collection);
+        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father, this.tree, this.collection);
+        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father, this.collection);
       }
     }else{
       if(y2+y1>0){
         //bottom
-        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null, this.tree, this.collection);
+        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father, this.tree, this.collection);
+        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father, this.collection);
       }else{
         //top
-        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null, this.tree, this.collection);
+        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.tree, this.collection);
+        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.collection);
       }
     }
     await Promise.all([this.father.init(),this.father.rightSon.init()]);
@@ -177,8 +172,7 @@ class TreeNode extends TimeLine{
     }else if(this.flag){//子叶的话
       return await this.__query(time);
     }else{
-      a, b = await Promise.all[this.leftSon._query(x1 ,y1, x2, y2, time),
-        await this.rightSon._query(x1 ,y1, x2, y2, time)];
+      var [a, b] = await Promise.all([this.leftSon._query(x1 ,y1, x2, y2, time), this.rightSon._query(x1 ,y1, x2, y2, time)]);
       return a.concat(b);
     }
   }
@@ -199,8 +193,8 @@ class TreeNode extends TimeLine{
   }
 }
 
-function createTree(type, tree, col){
-  return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree,col);
+function createTree(type, col){
+  return new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,col);
 }
 
 module.exports = {

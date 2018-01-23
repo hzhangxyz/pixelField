@@ -36,7 +36,6 @@ save_fresh  改变data
 计划任务:
   findAncestor
   fresh
-  数据库改变后需要对所有节点disinit, init
   disinit 可清除长时间无用的data
 
 哪些await是可以等一会await的?
