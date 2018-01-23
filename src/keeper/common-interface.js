@@ -46,7 +46,7 @@ class TimeLine{
 }
 
 class TreeNode extends TimeLine{
-  constructor(x1, y1, x2, y2, father, tree){
+  constructor(x1, y1, x2, y2, father, tree, collection){
     // id? x1 y1 x2 y2 leftSon rightSon father flag data top
     super();
     this.x1 = x1;
@@ -57,11 +57,13 @@ class TreeNode extends TimeLine{
     this.rightSon = null;
     this.father = father;
     this.flag = (x2 - x1)<=edgeSize-1 && (y2 - y1)<=edgeSize-1 // True if it is unit
-    this.collection = null;
+    this.collection = collection;
     this.tree = tree
     tree.push(this)
+    this.inited = false
   }
-  async init(n){
+  async init(){
+    tree.inited = true
   }
   format(){
     return `node x1:${this.x1}, x2:${this.x2}, y1:${this.y1}, y2:${this.y2}`
@@ -81,14 +83,12 @@ class TreeNode extends TimeLine{
     this.notSplited = false;
     var x1 = this.x1, x2 = this.x2, y1 = this.y1, y2 = this.y2;
     if((x2-x1)==(y2-y1)){//  True: -- False: --
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.tree);
-      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this, this.tree);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, x2, (y1+y2+1)/2-1, this, this.tree, this.collection);
+      this.rightSon = this.rightSon || new this.constructor(x1, (y1+y2+1)/2, x2, y2, this, this.tree, this.collection);
     }else{
-      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.tree);
-      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.tree);
+      this.leftSon = this.leftSon || new this.constructor(x1, y1, (x1+x2+1)/2-1, y2, this, this.tree, this.collection);
+      this.rightSon = this.rightSon || new this.constructor((x1+x2+1)/2, y1, x2, y2, this, this.tree, this.collection);
     }
-    await Promise.all([this.leftSon.init(this.collection),
-      this.rightSon.init(this.collection)]);
   }
   async extend(){//only called by root node
     this.notExtended = true;
@@ -101,30 +101,28 @@ class TreeNode extends TimeLine{
     if((x2-x1)==(y2-y1)){
       if(x2+x1>0){
         //left;
-        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null, this.tree);
+        this.father = new this.constructor(2*x1-x2-1, y1, x2, y2, null, this.tree, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father, this.tree);
+        this.father.rightSon = new this.constructor(2*x1-x2-1, y1, x1-1, y2, this.father, this.tree, this.collection);
       }else{
         //right
-        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null, this.tree);
+        this.father = new this.constructor(x1, y1, 2*x2-x1+1, y2, null, this.tree, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father, this.tree);
+        this.father.rightSon = new this.constructor(x2+1, y1, 2*x2-x1+1, y2, this.father, this.tree, this.collection);
       }
     }else{
       if(y2+y1>0){
         //bottom
-        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null, this.tree);
+        this.father = new this.constructor(x1, 2*y1-y2-1, x2, y2, null, this.tree, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father, this.tree);
+        this.father.rightSon = new this.constructor(x1, 2*y1-y2-1, x2, y1-1, this.father, this.tree, this.collection);
       }else{
         //top
-        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null, this.tree);
+        this.father = new this.constructor(x1, y1, x2, 2*y2-y1+1, null, this.tree, this.collection);
         this.father.leftSon = this;
-        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.tree);
+        this.father.rightSon = new this.constructor(x1, y2+1, x2, 2*y2-y1+1, this.father, this.tree, this.collection);
       }
     }
-    await this.father.init(this.collection);
-    await this.father.rightSon.init(this.collection);
   }
   async _addPoint(point, color, time){
     if(this.flag){
@@ -139,6 +137,7 @@ class TreeNode extends TimeLine{
     }
   }
   async addPoint(point, color, time){//only called by root node
+    await this.init()
     if(this.father){
       await this.father.addPoint();
     }else{
@@ -146,7 +145,7 @@ class TreeNode extends TimeLine{
         await this._addPoint(point, color, time);
       }else{
         await this.extend();
-        await this.father._addPoint(point, color, time);
+        await this.father.addPoint(point, color, time);
       }
     }
   }
@@ -159,6 +158,7 @@ class TreeNode extends TimeLine{
     return flag;
   }
   async query(x1, y1, x2, y2, time){//only called by root node
+    await this.init()
     if(this.father){
       return await this.father.query(x1, y1, x2, y2, time);
     }else{
@@ -177,6 +177,7 @@ class TreeNode extends TimeLine{
     }
   }
   async findAncestor(){
+    await this.init()
     if(!this.father){
       return this;
     }else{
@@ -185,9 +186,9 @@ class TreeNode extends TimeLine{
   }
 }
 
-function createTree(type){
+function createTree(type, col){
   var tree = [];
-  new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree);
+  new type(-edgeSize/2,-edgeSize/2,edgeSize/2-1,edgeSize/2-1,null,tree,col);
   return tree
 }
 

@@ -12,14 +12,13 @@ async function getCollection(){
 }
 
 class MongodbTreeNode extends commonInterface.TreeNode{
-  constructor(x1, y1, x2, y2, father, tree){
-    super(x1, y1, x2, y2, father, tree);
+  constructor(x1, y1, x2, y2, father, tree, col){
+    super(x1, y1, x2, y2, father, tree, col);
   }
-  async init(col){
-    if(this.collection){
-      return
+  async init(){
+    if(this.inited){
+      return;
     }
-    this.collection = col;
     var res = await this.collection.insert({
       x1:this.x1,
       y1:this.y1,
@@ -33,6 +32,7 @@ class MongodbTreeNode extends commonInterface.TreeNode{
       rightSon:null
     });
     this.id = res.ops[0]._id;
+    this.inited = true;
   }
   getId(node){
     if(node){
@@ -118,7 +118,6 @@ class MongodbTreeNode extends commonInterface.TreeNode{
   async extend(){
     await super.extend()
     if(!this.notExtended){
-      this.father.save_node();
       this.save_node();
       this.notExtended = true;
     }
@@ -133,17 +132,21 @@ class MongodbTreeNode extends commonInterface.TreeNode{
 // 哪些await是可以等一会await的?
 
 class ReadNode extends MongodbTreeNode{
-  constructor(id, tree){
+  constructor(id, tree, col){ // !!!!!!!!!!
+    if(arguments.length == 7){
+      super(...arguments)
+      return
+    }
     for(var i of tree){
       if(i &&(id.equals(i.id))){
         return i
       }
     }
-    super(0,0,0,0,null,tree)
+    super(0,0,0,0,null,tree, col)
     this.id = id;
   }
-  async init(col){//what if 已经在内存里了?
-    if(this.collection){
+  async init(col){
+    if(this.inited){
       return
     }
     //if(this.fromMem = true){
@@ -174,6 +177,7 @@ class ReadNode extends MongodbTreeNode{
     }else{
       this.rightSon = new ReadNode(meta.rightSon, this.tree);
     }
+    this.inited = true;
   }
 }
 
