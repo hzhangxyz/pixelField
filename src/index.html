@@ -3,7 +3,7 @@
 <script src="https://cdn.bootcss.com/two.js/0.7.0-alpha.1/two.min.js"></script>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 
-<script src="./local-storage-interface-test.js"></script>
+<!--<script src="./local-storage-interface-test.js"></script>-->
 
 <body>
   <div id="loading"><p style="margin: 0;position: fixed">loading.<span id=dots></span></p></div>
@@ -12,18 +12,20 @@
     <div id=picker style="padding: 5;position: fixed;">
       <input type=color id=color></input>
       <button id=button>color it</button>
+      <button id=clear>clear all</button>
+      <span id=position></span>
     </div>
   </div>
 </body>
 
 <script>
 
-var dotter = setInterval(()=>{document.getElementById("dots").innerText+="."},300);
+var dotter = setInterval(()=>{$("#dots").append(".")},300);
 
 // 准备画布
 var params = {
   fullscreen: true,
-  type: Two.Types.canvas,
+  type: Two.Types.svg,
   autostart: true
 };
 var two = new Two(params).appendTo(document.getElementById("container"));
@@ -33,11 +35,32 @@ var cacheParam = 2
 var offsetX = two.width/2;
 var offsetY = two.height/2;
 
+var tmpOffsetX = 0;
+var tmpOffsetY = 0;
+var startX = 0;
+var startY = 0;
+var selectX = 0;
+var selectY = 0;
+
 var group = two.makeGroup();
+var selectRect = two.makeRectangle(0, 0, unitSize, unitSize);
+selectRect.fill = "rgba(256, 0, 0, 0)";
+
+// 读取url中信息
+if(location.hash.length>1){
+  [selectX, selectY] = location.hash.substr(1).split(",").map((n)=>parseInt(n))
+  offsetX -= selectX*unitSize
+  offsetY -= selectY*unitSize
+}
+
 
 // 更新画布位置
 two.bind('update',()=>{
   group.translation.set(offsetX, offsetY);
+  //var oldSelectRect = selectRect;
+  //selectRect.fill = "rgba(256, 0, 0, 0)";
+  selectRect.translation.set(selectX*unitSize+offsetX, selectY*unitSize+offsetY);
+  //oldSelectRect.remove();
 })
 
 // 更新画布内容
@@ -65,6 +88,9 @@ async function freshCanvas(tree,group){
   if(!tree){
     console.log("Read From Storage")
     tree = await recovery(localStorage);
+    if(!tree){
+      tree = createTree(LocalStorageTreeNode,localStorage);
+    }
   }
   var l = await tree.query(...getRange());
   var g = group.children.map((n)=>n)
@@ -72,6 +98,7 @@ async function freshCanvas(tree,group){
     createPoint(i.x,i.y,i.r,i.g,i.b,group,two);
   }
   g.map((n)=>n.remove());
+  //await sleep(2000)
   return tree
 }
 
@@ -87,7 +114,38 @@ freshCanvas(null, group).then((n)=>{
 
 //拖动的时候...
 
+$("#container").mousedown(function(e){
+  selectX = Math.round((e.pageX - offsetX)/unitSize);
+  selectY = Math.round((e.pageY - offsetY)/unitSize);
+  location.hash=`${selectX},${selectY}`;
+  $("#position").html(`X: ${selectX}, Y: ${selectY}`);
+  startX=e.pageX;
+  startY=e.pageY;
+  tmpOffsetX = offsetX;
+  tmpOffsetY = offsetY;
+  $("#container").bind("mousemove",function(es){
+    offsetX = es.pageX - startX + tmpOffsetX
+    offsetY = es.pageY - startY + tmpOffsetY
+  });
+})
+$("#container").mouseup(function(e){
+  $("#container").unbind("mousemove")
+})
+
 //color it
+$("#button").click(()=>{
+  var color = $("#color").val();
+  tree.addPoint({x:selectX,y:selectY},{
+    r:parseInt(color.substr(1,2),16),
+    g:parseInt(color.substr(3,2),16),
+    b:parseInt(color.substr(5,2),16)
+  },Date.now())
+})
+
+$("#clear").click(()=>{
+  clearData(localStorage);
+  tree = createTree(LocalStorageTreeNode,localStorage);
+})
 
 //来自服务器的更新
 
