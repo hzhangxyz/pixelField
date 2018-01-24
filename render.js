@@ -181,6 +181,7 @@ function loader(){
     console.log('Connection closed.');
     firstFresh.then(loaded)
     useServer = false;
+    $("#closed").html("Connection Closed");
     //location.reload();
     //ws = new WebSocket(location.origin.replace("http","ws"));
   };
