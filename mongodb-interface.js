@@ -1,10 +1,10 @@
 var MongoClient = require('mongodb').MongoClient;
 var commonInterface = require("./common-interface.js");
 
-var url = 'mongodb://localhost:27017';
-var dbName = 'pixelField';
+var defaultUrl = 'mongodb://localhost:27017';
+var defaultDbName = 'pixelField';
 
-async function getCollection(){
+async function getCollection(url=defaultUrl, dbName=defaultDbName){
   var client = await MongoClient.connect(url);
   var db = client.db(dbName);
   var collection = db.collection('tree');

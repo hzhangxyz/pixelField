@@ -7,7 +7,14 @@ var expressWs = require('express-ws')(app);
 var timeout = 600000;
 
 (async ()=>{
-  var c = await keeper.getCollection();
+  var c
+  if(process.argv.length==4){
+    c = await keeper.getCollection(process.argv[2],process.argv[3]);
+  }else if(process.argv.length==3){
+    c = await keeper.getCollection(process.argv[2]);
+  }else{
+    c = await keeper.getCollection();
+  }
   var tree = await keeper.recovery(c[0]);
   if(!tree){
     tree = keeper.createTree(keeper.MongodbTreeNode, c[0]);
