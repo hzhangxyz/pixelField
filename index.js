@@ -22,6 +22,7 @@ var expressWs = require('express-ws')(app);
   app.get('/', express.static('.'))
   app.get('/common-interface.js', express.static('.'))
   app.get('/local-storage-interface.js', express.static('.'))
+  app.get('/render.js', express.static('.'))
 
   app.ws('/', function(ws, req) {
     ws.on('message', function(msg) {
@@ -32,10 +33,8 @@ var expressWs = require('express-ws')(app);
             ws.send(JSON.stringify(res))
           })
         }else{
-          for(var i of data){
-            tree.addPoint(i[0],i[1],i[2])
-            console.log(i)
-          }
+          tree.addPoint(data[0],data[1],Date.now())
+          // send to other ????????????????????
         }
       }catch(e){
         console.log(e)
