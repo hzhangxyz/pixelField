@@ -18,9 +18,10 @@ var timeout = 600000;
   process.on('exit',res[1])
 
   app.get('/', express.static('.'))
-  app.get('/common-interface.js', express.static('.'))
-  app.get('/local-storage-interface.js', express.static('.'))
-  app.get('/render.js', express.static('.'))
+  //app.get('/common-interface.js', express.static('.'))
+  //app.get('/local-storage-interface.js', express.static('.'))
+  //app.get('/render.js', express.static('.'))
+  app.get('/compressed.js', express.static('.'))
 
   var wsList = new Set([]);
 

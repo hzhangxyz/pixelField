@@ -60,7 +60,7 @@ function getRange(){
   var h = two.height/unitSize;
   var x = -offsetX/unitSize;
   var y = -offsetY/unitSize;
-  res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
+  var res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
   return res
 }
 

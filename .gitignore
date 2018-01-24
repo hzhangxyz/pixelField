@@ -5,3 +5,4 @@ data/log*
 data/mongod.lock
 data/*.0
 data/*.ns
+compressed.js
