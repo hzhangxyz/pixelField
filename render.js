@@ -201,7 +201,7 @@ function loader(){
     var d = []
     for(var i of JSON.parse(evt.data)){
       l.push(tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t))
-      d.push([{x:i.x,y:},{r:i.r,g:i.g,b:r.b}])
+      d.push([{x:i.x,y:i.y},{r:i.r,g:i.g,b:r.b}])
     }
     freshCanvas(d)
   };
