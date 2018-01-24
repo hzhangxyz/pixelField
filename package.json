@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "sh +x build.sh",
+    "debug": "DEBUG=--no-babelrc sh +x build.sh",
     "mongodb": "mongod --dbpath=./data --logpath=./data/log",
     "start": "node ./tmp/index.js"
   },
@@ -31,11 +32,5 @@
     "babel-cli": "^6.26.0",
     "babel-minify": "^0.2.0",
     "babel-preset-env": "^1.6.1"
-  },
-  "babel": {
-    "presets": [
-      "env",
-      "minify"
-    ]
   }
 }
