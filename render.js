@@ -110,7 +110,7 @@ $("#container").bind("mouseup",function(e){
 })
 
 //一些键盘操作
-$("#container").bind("keydown",function(e) {
+$(window).bind("keydown",function(e) {
   switch(e.keyCode){
     case 32://空格
       colorIt()
@@ -169,7 +169,7 @@ function loaded(){
   $("#loaded").css("display","block")
   $("#loading").css("display","none")
   clearInterval(dotter)
-  $("#container").focus()
+  //$("#container").focus()
   $("#clear").css("display","none")
   window.onresize=freshCanvas
 }
