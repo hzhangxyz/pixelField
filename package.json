@@ -4,9 +4,9 @@
   "description": "pixel field",
   "main": "index.js",
   "scripts": {
-    "build": "node ./node_modules/babel-cli/bin/babel.js common-interface.js local-storage-interface.js render.js -o compressed.js",
+    "build": "sh +x build.sh",
     "mongodb": "mongod --dbpath=./data --logpath=./data/log",
-    "start": "node index.js"
+    "start": "node ./tmp/index.js"
   },
   "repository": {
     "type": "git",

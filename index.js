@@ -1,4 +1,5 @@
 var keeper = require('./mongodb-interface.js')
+var path = require('path')
 var express = require('express')
 var app = express()
 var expressWs = require('express-ws')(app);
@@ -17,11 +18,11 @@ var timeout = 600000;
   var tree = res[0];
   process.on('exit',res[1])
 
-  app.get('/', express.static('.'))
-  //app.get('/common-interface.js', express.static('.'))
-  //app.get('/local-storage-interface.js', express.static('.'))
-  //app.get('/render.js', express.static('.'))
-  app.get('/compressed.js', express.static('.'))
+  app.get('/', (req, res)=>{
+    res.sendFile("index.html",{
+      root: __dirname
+    })
+  })
 
   var wsList = new Set([]);
 

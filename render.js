@@ -7,7 +7,7 @@ var two = new Two({
 }).appendTo(document.getElementById("container"));
 
 
-var unitSize = 20;
+var unitSize = 10;
 var cacheParam = 2
 var offsetX = two.width/2;
 var offsetY = two.height/2;
