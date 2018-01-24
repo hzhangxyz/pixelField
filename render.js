@@ -1,4 +1,5 @@
 // 准备画布
+
 var dotter = setInterval(()=>{$("#dots").append(".")},50);
 var two = new Two({
   fullscreen: true,
@@ -7,8 +8,8 @@ var two = new Two({
 }).appendTo(document.getElementById("container"));
 
 
-var unitSize = 10;
-var cacheParam = 2
+var unitSize = 10; // 一个点的大小
+var cacheParam = 2 // 预加载周围多大的范围
 var offsetX = two.width/2;
 var offsetY = two.height/2;
 
@@ -46,51 +47,6 @@ two.bind('update',()=>{
   selectRect.translation.set(selectX*unitSize+offsetX, selectY*unitSize+offsetY);
   //oldSelectRect.remove();
 })
-
-// 更新画布内容
-function createPoint(x, y, r, g, b){
-  var rect = two.makeRectangle(x*unitSize, y*unitSize, unitSize, unitSize);
-  rect.fill = `rgb(${r},${g},${b})`
-  rect.noStroke()
-  group.add(rect)
-}
-
-function getRange(){
-  var w = two.width/unitSize;
-  var h = two.height/unitSize;
-  var x = -offsetX/unitSize;
-  var y = -offsetY/unitSize;
-  var res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
-  return res
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function freshCanvas(points){// local => svg
-  if(!tree){
-    console.log("Read From Storage")
-    tree = await recovery(localStorage);
-    if(!tree){
-      tree = createTree(LocalStorageTreeNode,localStorage);
-    }
-  }
-  if(point){
-    for(var i of point){
-      createPoint(i[0].x,i[0].y,i[1].r,i[1].g,i[1].b);
-    }
-  }else{
-    var l = tree.query(...getRange());
-    var g = group.children.map((n)=>n)
-    for(var i of await l){
-      createPoint(i.x,i.y,i.r,i.g,i.b);
-    }
-    g.map((n)=>n.remove());
-  }
-  two.update()
-  //await sleep(2000)
-}
 
 //拖动的时候...
 
@@ -163,6 +119,51 @@ async function colorIt(){
   await freshCanvas([param])
 }
 
+// 更新画布内容
+function createPoint(x, y, r, g, b){
+  var rect = two.makeRectangle(x*unitSize, y*unitSize, unitSize, unitSize);
+  rect.fill = `rgb(${r},${g},${b})`
+  rect.noStroke()
+  group.add(rect)
+}
+
+function getRange(){
+  var w = two.width/unitSize;
+  var h = two.height/unitSize;
+  var x = -offsetX/unitSize;
+  var y = -offsetY/unitSize;
+  var res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
+  return res
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function freshCanvas(points){// local => svg
+  if(!tree){
+    console.log("Read From Storage")
+    tree = await recovery(localStorage);
+    if(!tree){
+      tree = createTree(LocalStorageTreeNode,localStorage);
+    }
+  }
+  if(points){
+    for(var i of points){
+      createPoint(i[0].x,i[0].y,i[1].r,i[1].g,i[1].b);
+    }
+  }else{
+    var l = tree.query(...getRange());
+    var g = group.children.map((n)=>n)
+    for(var i of await l){
+      createPoint(i.x,i.y,i.r,i.g,i.b);
+    }
+    g.map((n)=>n.remove());
+  }
+  two.update()
+  //await sleep(2000)
+}
+
 //来自服务器的更新
 
 function queryFromServer(){
@@ -177,7 +178,7 @@ function loaded(){
   clearInterval(dotter)
   //$("#container").focus()
   $("#clear").css("display","none")
-  window.onresize=freshCanvas
+  $(window).bind("resize",()=>freshCanvas());
 }
 
 function loader(){
@@ -201,7 +202,7 @@ function loader(){
     var d = []
     for(var i of JSON.parse(evt.data)){
       l.push(tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t))
-      d.push([{x:i.x,y:i.y},{r:i.r,g:i.g,b:r.b}])
+      d.push([{x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b}])
     }
     freshCanvas(d)
   };
