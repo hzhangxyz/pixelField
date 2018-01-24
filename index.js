@@ -3,9 +3,7 @@ var express = require('express')
 var app = express()
 var expressWs = require('express-ws')(app);
 
-//var bodyParser = require('body-parser');
-//app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({extended:true}));
+var timeout = 600000;
 
 (async ()=>{
   var c = await keeper.getCollection();
@@ -24,20 +22,59 @@ var expressWs = require('express-ws')(app);
   app.get('/local-storage-interface.js', express.static('.'))
   app.get('/render.js', express.static('.'))
 
+  var wsList = new Set([]);
+
+  function isNum(){
+    for(var i of arguments){
+      if(typeof i != 'number'){
+        return false;
+      }
+    }
+    return true;
+  }
   app.ws('/', function(ws, req) {
+    ws.refreshTime = Date.now();
+    wsList.add(ws);
     ws.on('message', function(msg) {
       try{
         var data = JSON.parse(msg);
-        if(typeof data.time != 'undefined'){//Query
-          tree.query(data.x1,data.y1,data.x2,data.y2,data.time).then((res)=>{
-            ws.send(JSON.stringify(res))
-          })
+        if(isNum(data.time)){//Query
+          if(isNum(data.x1,data.y1,data.x2,data.y2,data.time)){
+            ws.refreshTime = Date.now()
+            tree.query(data.x1,data.y1,data.x2,data.y2,data.time).then((res)=>{
+              ws.send(JSON.stringify(res))
+            })
+          }else{
+            throw "Error Data"
+          }
         }else{
-          tree.addPoint(data[0],data[1],Date.now())
-          // send to other ????????????????????
+          if(isNum(data[0].x,data[0].y,data[1].r,data[1].g,data[1].b,data[2])){
+            ws.refreshTime = Date.now()
+            var time = Date.now()
+            tree.addPoint(data[0],data[1],time)
+            var toSend = JSON.stringify([{x:data[0].x,y:data[0].y,r:data[1].r,g:data[1].g,b:data[1].b,t:time,abandoned:false}]);
+            for(var i of wsList){
+              try{
+                if(time - i.refreshTime > timeout){
+                  wsList.delete(i)
+                  i.close()
+                }else{
+                  i.send(toSend);
+                }
+              }catch(e){
+                console.log(e)
+                wsList.delete(i);
+                i.close();
+              }
+            }
+          }else{
+            throw "Error Data"
+          }
         }
       }catch(e){
         console.log(e)
+        wsList.delete(ws)
+        ws.close()
       }
     });
   });

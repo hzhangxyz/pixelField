@@ -22,12 +22,7 @@ var selectY = 0;
 var ws = null;
 var tree = null;
 
-function loaded(){
-  $("#loaded").css("display","block")
-  $("#loading").css("display","none")
-  clearInterval(dotter)
-  $("#container").focus()
-}
+var useServer = true;
 
 // 读取url中信息
 if(location.search.length>1){
@@ -147,7 +142,7 @@ function clearCanvas(){
   freshCanvas()
 }
 
-function colorIt(){
+async function colorIt(){
   var color = $("#color").val();
   //tree.addPoint
   var param = [{x:selectX,y:selectY},{
@@ -155,9 +150,11 @@ function colorIt(){
     g:parseInt(color.substr(3,2),16),
     b:parseInt(color.substr(5,2),16)
   },Date.now()];
-  tree.addPoint(...param);
-  ws.send(JSON.stringify(param))
-  freshCanvas()
+  if(useServer){
+    ws.send(JSON.stringify(param))
+  }
+  await tree.addPoint(...param);
+  await freshCanvas()
 }
 
 //来自服务器的更新
@@ -168,32 +165,42 @@ function queryFromServer(){
   // time ???????????????????
 }
 
-async function loader(){
-  await freshCanvas();
+function loaded(){
+  $("#loaded").css("display","block")
+  $("#loading").css("display","none")
+  clearInterval(dotter)
+  $("#container").focus()
+}
 
-  ws = new WebSocket(location.origin.replace("http","ws"));
+function loader(){
+  var firstFresh = freshCanvas();
 
-  // time 由当前区域tree的信息确定 同时传递x y z
-  ws.onmessage = function(evt) {
-    console.log(`receive ${evt.data}`)
-    for(var i of JSON.parse(evt.data)){
-      tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t)
-    }
-  };
+  ws = new WebSocket((location.origin+location.pathname).replace("http","ws"));
 
   ws.onclose = function(evt) {
     console.log('Connection closed.');
-    ws = new WebSocket(location.origin.replace("http","ws"));
+    firstFresh.then(loaded)
+    useServer = false;
+    //location.reload();
+    //ws = new WebSocket(location.origin.replace("http","ws"));
+  };
+
+  ws.onmessage = function(evt) {
+    //console.log(`receive ${evt.data}`)
+    for(var i of JSON.parse(evt.data)){
+      tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t)
+    }
+    freshCanvas()
   };
 
   ws.onopen = function(evt) {
     console.log('Connection open ...');
     queryFromServer();
+
+    firstFresh.then(loaded)
+    //setInterval(()=>freshCanvas(),1000)
   };
 }
 
-loader().then(()=>{
-  loaded();
-  setInterval(()=>freshCanvas(),1000)
-})
+loader()
 
