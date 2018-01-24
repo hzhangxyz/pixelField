@@ -170,6 +170,7 @@ function loaded(){
   $("#loading").css("display","none")
   clearInterval(dotter)
   $("#container").focus()
+  $("#clear").css("display","none")
 }
 
 function loader(){
@@ -182,6 +183,7 @@ function loader(){
     firstFresh.then(loaded)
     useServer = false;
     $("#closed").html("Connection Closed");
+    $("#clear").css("display","inline")
     //location.reload();
     //ws = new WebSocket(location.origin.replace("http","ws"));
   };
