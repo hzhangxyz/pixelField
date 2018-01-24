@@ -76,9 +76,9 @@ async function freshCanvas(){// local => svg
       tree = createTree(LocalStorageTreeNode,localStorage);
     }
   }
-  var l = await tree.query(...getRange());
+  var l = tree.query(...getRange());
   var g = group.children.map((n)=>n)
-  for(var i of l){
+  for(var i of await l){
     createPoint(i.x,i.y,i.r,i.g,i.b);
   }
   g.map((n)=>n.remove());
@@ -188,10 +188,11 @@ function loader(){
 
   ws.onmessage = function(evt) {
     //console.log(`receive ${evt.data}`)
+    var l = []
     for(var i of JSON.parse(evt.data)){
-      tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t)
+      l.push(tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t))
     }
-    freshCanvas()
+    Promise.all(l).then(freshCanvas())
   };
 
   ws.onopen = function(evt) {
