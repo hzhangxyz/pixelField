@@ -22,6 +22,7 @@
   "homepage": "https://github.com/hzhangxyz/pixelField#readme",
   "dependencies": {
     "express": "^4.16.2",
+    "express-ws": "^3.0.0",
     "mongodb": "^3.0.1"
   }
 }

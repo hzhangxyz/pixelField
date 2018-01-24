@@ -8,7 +8,7 @@
 <body>
   <div id="loading"><p style="margin: 0;position: fixed">loading.<span id=dots></span></p></div>
   <div id="loaded" style="display: none">
-    <div id=container></div>
+    <div id=container tabindex=1></div>
     <div id=picker style="padding: 5;position: fixed;">
       <input type=color id=color></input>
       <button id=button>color it</button>
@@ -26,7 +26,7 @@ var dotter = setInterval(()=>{$("#dots").append(".")},300);
 var params = {
   fullscreen: true,
   type: Two.Types.svg,
-  autostart: true
+//  autostart: true
 };
 var two = new Two(params).appendTo(document.getElementById("container"));
 
@@ -42,6 +42,9 @@ var startY = 0;
 var selectX = 0;
 var selectY = 0;
 
+var toSend = [];
+var ws = null;
+
 // 读取url中信息
 if(location.search.length>1){
   unitSize = parseInt(location.search.substr(1))
@@ -51,7 +54,6 @@ if(location.hash.length>1){
   offsetX -= selectX*unitSize
   offsetY -= selectY*unitSize
 }
-
 
 // 更新画布位置
 var group = two.makeGroup();
@@ -87,7 +89,13 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function freshCanvas(tree,group){
+function clearCanvas(){
+  clearData(localStorage);
+  tree = createTree(LocalStorageTreeNode,localStorage);
+  freshCanvas()
+}
+
+async function freshCanvas(){
   if(!tree){
     console.log("Read From Storage")
     tree = await recovery(localStorage);
@@ -101,23 +109,14 @@ async function freshCanvas(tree,group){
     createPoint(i.x,i.y,i.r,i.g,i.b,group,two);
   }
   g.map((n)=>n.remove());
+  two.update()
   //await sleep(2000)
-  return tree
 }
-
-var tree = null;
-freshCanvas(null, group).then((n)=>{
-  tree = n;
-  $("#loaded").css("display","block")
-  $("#loading").css("display","none")
-  clearInterval(dotter)
-  setInterval(()=>freshCanvas(tree, group),1000)
-  // loaded
-})
 
 //拖动的时候...
 
-$("#container").mousedown(function(e){
+$("#position").html(`X: ${selectX}, Y: ${selectY}`);
+$("#container").bind("mousedown",function(e){
   selectX = Math.round((e.pageX - offsetX)/unitSize);
   selectY = Math.round((e.pageY - offsetY)/unitSize);
   location.hash=`${selectX},${selectY}`;
@@ -126,33 +125,119 @@ $("#container").mousedown(function(e){
   startY=e.pageY;
   tmpOffsetX = offsetX;
   tmpOffsetY = offsetY;
+  two.update()
   $("#container").bind("mousemove",function(es){
     offsetX = es.pageX - startX + tmpOffsetX
     offsetY = es.pageY - startY + tmpOffsetY
+    two.update()
   });
 })
-$("#container").mouseup(function(e){
+$("#container").bind("mouseup",function(e){
   $("#container").unbind("mousemove")
 })
 
 //color it
-$("#button").click(()=>{
+function colorIt(){
   var color = $("#color").val();
-  tree.addPoint({x:selectX,y:selectY},{
+  //tree.addPoint
+  clientAddPoint({x:selectX,y:selectY},{
     r:parseInt(color.substr(1,2),16),
     g:parseInt(color.substr(3,2),16),
     b:parseInt(color.substr(5,2),16)
   },Date.now())
-  freshCanvas(tree, group)
-})
+  freshCanvas()
+}
+$("#button").click(colorIt)
+$("#clear").click(clearCanvas)
 
-$("#clear").click(()=>{
-  clearData(localStorage);
-  tree = createTree(LocalStorageTreeNode,localStorage);
-  freshCanvas(tree, group)
-})
+//一些键盘操作
+$("#container").bind("keydown",function(e) {
+  switch(e.keyCode){
+    case 32://空格
+      colorIt()
+      break;
+    case 37://left
+      selectX -= 1;
+      break;
+    case 38://up
+      selectY -= 1;
+      break;
+    case 39://right
+      selectX += 1;
+      break;
+    case 40://down
+      selectY += 1;
+      break;
+  }
+  $("#position").html(`X: ${selectX}, Y: ${selectY}`);
+  two.update()
+});
 
 //来自服务器的更新
+
+async function loaded(){
+  $("#loaded").css("display","block")
+  $("#loading").css("display","none")
+  clearInterval(dotter)
+  $("#container").focus()
+}
+
+function clientAddPoint(){
+  tree.addPoint(...arguments)
+  toSend.push(arguments)
+  //
+  Client2Server()
+}
+
+async function loadFromServer(){
+
+  //send toSend
+  //ask update
+  await freshCanvas();
+}
+
+// Loading Local Storage
+
+function Server2Client(){
+  ws.send(JSON.stringify({time: 0, x1:-100, y1:-100, x2:100, y2:100}));
+}
+
+function Client2Server(){
+  ws.send(JSON.stringify(toSend))
+  toSend = []
+}
+
+async function loader(){
+  await freshCanvas();
+
+  ws = new WebSocket(location.origin.replace("http","ws"));
+
+  // time 由当前区域tree的信息确定 同时传递x y z
+  ws.onmessage = function(evt) {
+    console.log(JSON.parse(evt.data))
+    for(var i of JSON.parse(evt.data)){
+      tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t)
+    }
+  };
+
+  ws.onclose = function(evt) {
+    console.log('Connection closed.');
+    ws = new WebSocket(location.origin.replace("http","ws"));
+  };
+
+  ws.onopen = function(evt) {
+    console.log('Connection open ...');
+    ws.send(JSON.stringify({time: 0, x1:-100, y1:-100, x2:100, y2:100}));
+  };
+}
+
+var tree = null;
+loader().then(()=>{
+  loaded();
+}).then(()=>{
+  setInterval(()=>loadFromServer(),1000)
+})
+
 
 </script>
 
