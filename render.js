@@ -68,7 +68,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function freshCanvas(){// local => svg
+async function freshCanvas(points){// local => svg
   if(!tree){
     console.log("Read From Storage")
     tree = await recovery(localStorage);
@@ -76,12 +76,18 @@ async function freshCanvas(){// local => svg
       tree = createTree(LocalStorageTreeNode,localStorage);
     }
   }
-  var l = tree.query(...getRange());
-  var g = group.children.map((n)=>n)
-  for(var i of await l){
-    createPoint(i.x,i.y,i.r,i.g,i.b);
+  if(point){
+    for(var i of point){
+      createPoint(i[0].x,i[0].y,i[1].r,i[1].g,i[1].b);
+    }
+  }else{
+    var l = tree.query(...getRange());
+    var g = group.children.map((n)=>n)
+    for(var i of await l){
+      createPoint(i.x,i.y,i.r,i.g,i.b);
+    }
+    g.map((n)=>n.remove());
   }
-  g.map((n)=>n.remove());
   two.update()
   //await sleep(2000)
 }
@@ -154,7 +160,7 @@ async function colorIt(){
     ws.send(JSON.stringify(param))
   }
   await tree.addPoint(...param);
-  await freshCanvas()
+  await freshCanvas([param])
 }
 
 //来自服务器的更新
@@ -192,10 +198,12 @@ function loader(){
   ws.onmessage = function(evt) {
     //console.log(`receive ${evt.data}`)
     var l = []
+    var d = []
     for(var i of JSON.parse(evt.data)){
       l.push(tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t))
+      d.push([{x:i.x,y:},{r:i.r,g:i.g,b:r.b}])
     }
-    Promise.all(l).then(freshCanvas())
+    freshCanvas(d)
   };
 
   ws.onopen = function(evt) {
