@@ -2,7 +2,7 @@
 var dotter = setInterval(()=>{$("#dots").append(".")},50);
 var two = new Two({
   fullscreen: true,
-  type: Two.Types.svg,
+  type: Two.Types.canvas,
   // autostart: true
 }).appendTo(document.getElementById("container"));
 
@@ -171,6 +171,7 @@ function loaded(){
   clearInterval(dotter)
   $("#container").focus()
   $("#clear").css("display","none")
+  window.onresize=freshCanvas
 }
 
 function loader(){
