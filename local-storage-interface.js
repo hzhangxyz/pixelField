@@ -62,17 +62,23 @@ class LocalStorageTreeNode extends TreeNode{
     await this.save();
   }
   async save(){
-    this.collection[this.id]=JSON.stringify({
-      x1:this.x1,
-      y1:this.y1,
-      x2:this.x2,
-      y2:this.y2,
-      flag:this.flag,
-      data:this.data,
-      father:this.getId(this.father),
-      leftSon:this.getId(this.leftSon),
-      rightSon:this.getId(this.rightSon)
-    });
+    if(this.saveHandle){
+      return
+    }
+    this.saveHandle = setTimeout(()=>{
+      this.collection[this.id]=JSON.stringify({
+        x1:this.x1,
+        y1:this.y1,
+        x2:this.x2,
+        y2:this.y2,
+        flag:this.flag,
+        data:this.data,
+        father:this.getId(this.father),
+        leftSon:this.getId(this.leftSon),
+        rightSon:this.getId(this.rightSon)
+      },1000);
+      delete this.saveHandle
+    })
   }
 }
 
