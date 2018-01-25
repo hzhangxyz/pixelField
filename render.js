@@ -58,6 +58,7 @@ class Screen{
     }
 
     this.useServer = true;
+    this.inited = false;
 
     this.group = this.two.makeGroup();
 
@@ -80,6 +81,7 @@ class Screen{
     };
     await this.query()
     this.loaded();
+    this.inited = true;
   }
   async query(){
     if(this.useServer){
@@ -120,6 +122,9 @@ class Screen{
       this.screen.selectY*this.screen.unitSize+this.screen.offsetY);
   }
   loaded(){
+    if(this.inited){
+      return
+    }
     $("#loaded").css("display","block")
     $("#loading").css("display","none")
     clearInterval(this.dotter)
@@ -131,6 +136,9 @@ class Screen{
     this.useServer = false;
     $("#closed").html("Connection Closed");
     $("#clear").css("display","inline")
+    if(!this.inited){
+      this.query()
+    }
   }
   colorIt(){
     var color = $("#color").val();
