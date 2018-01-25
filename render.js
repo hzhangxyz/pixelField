@@ -236,6 +236,7 @@ $(window).bind("keydown",function(e) {
       screen.selectY += 1;
       break;
   }
+  location.hash=`${screen.selectX},${screen.selectY}`;
   $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
   if(e.ctrlKey){
     screen.two.update()
