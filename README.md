@@ -1,6 +1,5 @@
 ## 服务端计划任务:
 
-- findAncestor
 - disinit 可清除长时间无用的data
 
 哪些await是可以等一会await的?
