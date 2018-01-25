@@ -25,11 +25,10 @@ var timeout = 600000;
   var tree = res[0];
   process.on('exit',res[1])
 
-  app.get('/', (req, res)=>{
-    res.sendFile("index.html",{
-      root: __dirname
-    })
-  })
+  app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
+  app.get('/common-interface.js', (req, res)=>{res.sendFile("common-interface.js",{root: __dirname})})
+  app.get('/local-storage-interface.js', (req, res)=>{res.sendFile("local-storage-interface.js",{root: __dirname})})
+  app.get('/render.js', (req, res)=>{res.sendFile("render.js",{root: __dirname})})
 
   var wsList = new Set([]);
 
@@ -47,28 +46,35 @@ var timeout = 600000;
     ws.on('message', function(msg) {
       try{
         var data = JSON.parse(msg);
+        //console.log(data)
         if(isNum(data.time)){//Query
           if(isNum(data.x1,data.y1,data.x2,data.y2,data.time)){
             ws.refreshTime = Date.now()
             tree.query(data.x1,data.y1,data.x2,data.y2,data.time).then((res)=>{
               ws.send(JSON.stringify(res))
+              //console.log(res)
             })
           }else{
             throw "Error Data"
           }
         }else{
+          //console.log(data)
           if(isNum(data[0].x,data[0].y,data[1].r,data[1].g,data[1].b,data[2])){
             ws.refreshTime = Date.now()
-            var time = Date.now()
+            var time = ws.refreshTime
             tree.addPoint(data[0],data[1],time)
             var toSend = JSON.stringify([{x:data[0].x,y:data[0].y,r:data[1].r,g:data[1].g,b:data[1].b,t:time,abandoned:false}]);
             for(var i of wsList){
+              if(i==ws){
+                continue
+              }
               try{
                 if(time - i.refreshTime > timeout){
                   wsList.delete(i)
                   i.close()
                 }else{
                   i.send(toSend);
+                  //console.log(toSend)
                 }
               }catch(e){
                 console.log(e)

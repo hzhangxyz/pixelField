@@ -1,220 +1,205 @@
-// 准备画布
-
-var dotter = setInterval(()=>{$("#dots").append(".")},50);
-var two = new Two({
-  fullscreen: true,
-  type: Two.Types.canvas,
-  // autostart: true
-}).appendTo(document.getElementById("container"));
-
-
-var unitSize = 10; // 一个点的大小
-var cacheParam = 2 // 预加载周围多大的范围
-var offsetX = two.width/2;
-var offsetY = two.height/2;
-
-var tmpOffsetX = 0;
-var tmpOffsetY = 0;
-var startX = 0;
-var startY = 0;
-var selectX = 0;
-var selectY = 0;
-
-var ws = null;
-var tree = null;
-
-var useServer = true;
-
-// 读取url中信息
-if(location.search.length>1){
-  unitSize = parseInt(location.search.substr(1))
-}
-if(location.hash.length>1){
-  [selectX, selectY] = location.hash.substr(1).split(",").map((n)=>parseInt(n))
-  offsetX -= selectX*unitSize
-  offsetY -= selectY*unitSize
+async function getTree(){
+  var tree = await recovery(localStorage);
+  if(!tree){
+    tree = createTree(LocalStorageTreeNode,localStorage);
+  }
+  return tree
 }
 
-// 更新画布位置
-var group = two.makeGroup();
-var selectRect = two.makeRectangle(0, 0, unitSize, unitSize);
-selectRect.fill = "rgba(256, 0, 0, 0)";
+function getWs(closeFunc){
+  return new Promise((resolve)=>{
+    var ws = new WebSocket((location.origin+location.pathname).replace("http","ws"));
+    ws.onclose = closeFunc;
+    ws.addPoint=async (...args)=>{
+      //console.log(args)
+      ws.send(JSON.stringify(args))
+    }
+    ws.query=(x1, y1, x2, y2, time)=>{
+      //console.log(x1,y1,x2,y2,time)
+      ws.send(JSON.stringify({time, x1, y1, x2, y2}));
+    }
+    // ws.query 与 tree.query 不一样
+    ws.onopen=()=>{
+      resolve(ws)
+    }
+  })
+}
 
-two.bind('update',()=>{
-  group.translation.set(offsetX, offsetY);
-  //var oldSelectRect = selectRect;
-  //selectRect.fill = "rgba(256, 0, 0, 0)";
-  selectRect.translation.set(selectX*unitSize+offsetX, selectY*unitSize+offsetY);
-  //oldSelectRect.remove();
-})
+class Screen{
+  constructor(){
+    this.screen = this
+    this.dotter = setInterval(()=>{$("#dots").append(".")},50);
+
+    this.two = new Two({
+      fullscreen: true,
+      type: Two.Types.canvas,
+      // autostart: true
+    }).appendTo(document.getElementById("container"));
+
+    this.tree = getTree();
+
+    this.ws = getWs(()=>{this.socketClose(),this.loaded()})
+
+    this.unitSize = 10; // 一个点的大小
+    this.cacheParam = 2 // 预加载周围多大的范围
+    this.offsetX = this.two.width/2;
+    this.offsetY = this.two.height/2;
+
+    this.selectX = 0;
+    this.selectY = 0;
+
+    if(location.search.length>1){
+      this.unitSize = parseInt(location.search.substr(1))
+    }
+    if(location.hash.length>1){
+      [this.selectX, this.selectY] = location.hash.substr(1).split(",").map((n)=>parseInt(n))
+      this.offsetX -= this.selectX*this.unitSize
+      this.offsetY -= this.selectY*this.unitSize
+    }
+
+    this.useServer = true;
+
+    this.group = this.two.makeGroup();
+
+    this.selectRect = this.two.makeRectangle(0, 0, this.unitSize, this.unitSize);
+    this.selectRect.fill = "rgba(255, 0, 0, 0)";
+
+    this.two.screen = this
+    this.two.bind('update',this.fresh)
+  }
+  async init(){//query from local and server
+    this.tree = await this.tree
+    this.ws = await this.ws
+    this.ws.screen = this
+    console.log("connection open...")
+    this.ws.onmessage = function(evt) {//this is this.ws
+      for(var i of JSON.parse(evt.data)){
+        this.screen.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t,"s")
+      }
+      this.screen.two.update()
+    };
+    await this.query()
+    this.loaded();
+  }
+  async query(){
+    if(this.useServer){
+      this.ws.query(...this.getRange(),0);
+    }
+    var data = await this.tree.query(...this.getRange(),0);
+    for(var i of data){
+      this.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},0,"l");
+    }
+    this.two.update();
+  }
+  getRange(){
+    var w = this.two.width/this.unitSize;
+    var h = this.two.height/this.unitSize;
+    var x = -this.offsetX/this.unitSize;
+    var y = -this.offsetY/this.unitSize;
+    var c = this.cacheParam
+    var res = [ x - c*w, y - c*h, x + (1+c)*w, y + (1+c)*h ]
+    return res
+  }
+  addPoint(p, c, t, f){
+    if(f!="l"){
+      this.tree.addPoint(...arguments)
+      this.tree.findAncestor().then((res)=>this.tree=res)
+    }
+    if(f=="h" && this.useServer){
+      this.ws.addPoint(...arguments)
+    }
+
+    var rect = this.two.makeRectangle(p.x*this.unitSize, p.y*this.unitSize, this.unitSize, this.unitSize);
+    rect.fill = `rgb(${c.r},${c.g},${c.b})`
+    rect.noStroke()
+    this.group.add(rect)
+  }
+  fresh(){//this is this.two
+    this.screen.group.translation.set(this.screen.offsetX, this.screen.offsetY);
+    this.screen.selectRect.translation.set(this.screen.selectX*this.screen.unitSize+this.screen.offsetX,
+      this.screen.selectY*this.screen.unitSize+this.screen.offsetY);
+  }
+  loaded(){
+    $("#loaded").css("display","block")
+    $("#loading").css("display","none")
+    clearInterval(this.dotter)
+    $("#clear").css("display","none")
+    $(window).bind("resize",()=>this.screen.two.update());
+  }
+  socketClose(){
+    console.log('Connection closed.');
+    this.useServer = false;
+    $("#closed").html("Connection Closed");
+    $("#clear").css("display","inline")
+  }
+  colorIt(){
+    var color = $("#color").val();
+    var param = [{x:this.selectX,y:this.selectY},{
+      r:parseInt(color.substr(1,2),16),
+      g:parseInt(color.substr(3,2),16),
+      b:parseInt(color.substr(5,2),16)
+    },Date.now()];
+    this.addPoint(...param,"h");
+    this.two.update()
+  }
+  clearCanvas(){//////////////
+    clearData(localStorage);
+    this.tree = createTree(LocalStorageTreeNode,localStorage);
+    this.group.children.map((n)=>n).map((n)=>n.remove())
+    this.two.update()
+  }
+}
+
+
+// html 相关的
+
+var screen =  new Screen();
+screen.init()
 
 //拖动的时候...
 
-$("#position").html(`X: ${selectX}, Y: ${selectY}`);
-$("#container").bind("mousedown",function(e){
-  selectX = Math.round((e.pageX - offsetX)/unitSize);
-  selectY = Math.round((e.pageY - offsetY)/unitSize);
-  location.hash=`${selectX},${selectY}`;
-  $("#position").html(`X: ${selectX}, Y: ${selectY}`);
-  startX=e.pageX;
-  startY=e.pageY;
-  tmpOffsetX = offsetX;
-  tmpOffsetY = offsetY;
-  two.update()
-  $("#container").bind("mousemove",function(es){
-    offsetX = es.pageX - startX + tmpOffsetX
-    offsetY = es.pageY - startY + tmpOffsetY
-    two.update()
+$("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
+$("#container").bind("mousedown",(e)=>{
+  screen.selectX = Math.round((e.pageX - screen.offsetX)/screen.unitSize);
+  screen.selectY = Math.round((e.pageY - screen.offsetY)/screen.unitSize);
+  location.hash=`${screen.selectX},${screen.selectY}`;
+  $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
+  var startX=e.pageX;
+  var startY=e.pageY;
+  var tmpOffsetX = screen.offsetX;
+  var tmpOffsetY = screen.offsetY;
+  screen.two.update()
+  $("#container").bind("mousemove",(es)=>{
+    screen.offsetX = es.pageX - startX + tmpOffsetX
+    screen.offsetY = es.pageY - startY + tmpOffsetY
+    screen.two.update()
   });
 })
-$("#container").bind("mouseup",function(e){
-  $("#container").unbind("mousemove")
-})
+$("#container").bind("mouseup",(e)=>$("#container").unbind("mousemove"))
 
 //一些键盘操作
 $(window).bind("keydown",function(e) {
   switch(e.keyCode){
     case 32://空格
-      colorIt()
+      screen.colorIt()
       break;
     case 37://left
-      selectX -= 1;
+      screen.selectX -= 1;
       break;
     case 38://up
-      selectY -= 1;
+      screen.selectY -= 1;
       break;
     case 39://right
-      selectX += 1;
+      screen.selectX += 1;
       break;
     case 40://down
-      selectY += 1;
+      screen.selectY += 1;
       break;
   }
-  $("#position").html(`X: ${selectX}, Y: ${selectY}`);
-  two.update()
+  $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
+  screen.two.update()
 });
 
 //color it
-$("#button").click(colorIt)
-$("#clear").click(clearCanvas)
-
-function clearCanvas(){
-  clearData(localStorage);
-  tree = createTree(LocalStorageTreeNode,localStorage);
-  freshCanvas()
-}
-
-async function colorIt(){
-  var color = $("#color").val();
-  //tree.addPoint
-  var param = [{x:selectX,y:selectY},{
-    r:parseInt(color.substr(1,2),16),
-    g:parseInt(color.substr(3,2),16),
-    b:parseInt(color.substr(5,2),16)
-  },Date.now()];
-  if(useServer){
-    ws.send(JSON.stringify(param))
-  }
-  await tree.addPoint(...param);
-  await freshCanvas([param])
-}
-
-// 更新画布内容
-function createPoint(x, y, r, g, b){
-  var rect = two.makeRectangle(x*unitSize, y*unitSize, unitSize, unitSize);
-  rect.fill = `rgb(${r},${g},${b})`
-  rect.noStroke()
-  group.add(rect)
-}
-
-function getRange(){
-  var w = two.width/unitSize;
-  var h = two.height/unitSize;
-  var x = -offsetX/unitSize;
-  var y = -offsetY/unitSize;
-  var res = [ x - cacheParam*w, y - cacheParam*h, x + (1+cacheParam)*w, y + (1+cacheParam)*h ]
-  return res
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function freshCanvas(points){// local => svg
-  if(!tree){
-    console.log("Read From Storage")
-    tree = await recovery(localStorage);
-    if(!tree){
-      tree = createTree(LocalStorageTreeNode,localStorage);
-    }
-  }
-  if(points){
-    for(var i of points){
-      createPoint(i[0].x,i[0].y,i[1].r,i[1].g,i[1].b);
-    }
-  }else{
-    var l = tree.query(...getRange());
-    var g = group.children.map((n)=>n)
-    for(var i of await l){
-      createPoint(i.x,i.y,i.r,i.g,i.b);
-    }
-    g.map((n)=>n.remove());
-  }
-  two.update()
-  //await sleep(2000)
-}
-
-//来自服务器的更新
-
-function queryFromServer(){
-  var ranger = getRange();
-  ws.send(JSON.stringify({time: 0, x1:ranger[0], y1:ranger[1], x2:ranger[2], y2:ranger[3]}));
-  // time ???????????????????
-}
-
-function loaded(){
-  $("#loaded").css("display","block")
-  $("#loading").css("display","none")
-  clearInterval(dotter)
-  //$("#container").focus()
-  $("#clear").css("display","none")
-  $(window).bind("resize",()=>freshCanvas());
-}
-
-function loader(){
-  var firstFresh = freshCanvas();
-
-  ws = new WebSocket((location.origin+location.pathname).replace("http","ws"));
-
-  ws.onclose = function(evt) {
-    console.log('Connection closed.');
-    firstFresh.then(loaded)
-    useServer = false;
-    $("#closed").html("Connection Closed");
-    $("#clear").css("display","inline")
-    //location.reload();
-    //ws = new WebSocket(location.origin.replace("http","ws"));
-  };
-
-  ws.onmessage = function(evt) {
-    //console.log(`receive ${evt.data}`)
-    var l = []
-    var d = []
-    for(var i of JSON.parse(evt.data)){
-      l.push(tree.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t))
-      d.push([{x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b}])
-    }
-    freshCanvas(d)
-  };
-
-  ws.onopen = function(evt) {
-    console.log('Connection open ...');
-    queryFromServer();
-
-    firstFresh.then(loaded)
-    //setInterval(()=>freshCanvas(),1000)
-  };
-}
-
-loader()
-
+$("#button").bind("click",screen.colorIt)
+$("#clear").bind("click",screen.clearCanvas)

@@ -15,5 +15,6 @@ $NODE ./node_modules/babel-cli/bin/babel.js ./tmp/_common-interface.js -o ./tmp/
 $NODE ./node_modules/babel-cli/bin/babel.js ./tmp/_mongodb-interface.js -o ./tmp/mongodb-interface.js $DEBUG
 $NODE ./node_modules/babel-cli/bin/babel.js ./tmp/_index.js -o ./tmp/index.js $DEBUG
 $NODE ./node_modules/babel-cli/bin/babel.js common-interface.js local-storage-interface.js render.js -o ./tmp/compressed.js $DEBUG
-cat index.html ./tmp/compressed.js >./tmp/index.html;
+expr `cat index.html | wc -l` - 4 | xargs head index.html -n > ./tmp/index.html
+cat ./tmp/compressed.js >> ./tmp/index.html;
 echo '</script>' >> ./tmp/index.html
