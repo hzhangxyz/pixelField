@@ -46,7 +46,7 @@ class Screen{
     this.ws = getWs(()=>{this.socketClose(),this.loaded()})
 
     this.unitSize = 10; // 一个点的大小
-    this.cacheParam = 2 // 预加载周围多大的范围
+    this.cacheParam = 1 // 预加载周围多大的范围
     this.offsetX = this.two.width/2;
     this.offsetY = this.two.height/2;
 
