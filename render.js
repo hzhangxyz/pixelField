@@ -129,7 +129,6 @@ class Screen{
     $("#loading").css("display","none")
     clearInterval(this.dotter)
     $("#clear").css("display","none")
-    //$(window).bind("resize",()=>this.screen.two.update());
   }
   socketClose(){
     console.log('Connection closed.');
@@ -221,5 +220,5 @@ $(window).bind("keydown",function(e) {
 });
 
 //color it
-$("#button").bind("click",screen.colorIt)
-$("#clear").bind("click",screen.clearCanvas)
+$("#button").bind("click",()=>screen.colorIt())
+$("#clear").bind("click",()=>screen.clearCanvas())
