@@ -32,7 +32,7 @@ class Screen{
 
     this.two = new Two({
       fullscreen: true,
-      type: Two.Types.canvas,
+      type: Two.Types.svg,
       // autostart: true
     }).appendTo(document.getElementById("container"));
 
@@ -124,7 +124,7 @@ class Screen{
     $("#loading").css("display","none")
     clearInterval(this.dotter)
     $("#clear").css("display","none")
-    $(window).bind("resize",()=>this.screen.two.update());
+    //$(window).bind("resize",()=>this.screen.two.update());
   }
   socketClose(){
     console.log('Connection closed.');
@@ -184,15 +184,27 @@ $(window).bind("keydown",function(e) {
       screen.colorIt()
       break;
     case 37://left
+      if(e.ctrlKey){
+        screen.offsetX += screen.unitSize
+      }
       screen.selectX -= 1;
       break;
     case 38://up
+      if(e.ctrlKey){
+        screen.offsetY += screen.unitSize
+      }
       screen.selectY -= 1;
       break;
     case 39://right
+      if(e.ctrlKey){
+        screen.offsetX -= screen.unitSize
+      }
       screen.selectX += 1;
       break;
     case 40://down
+      if(e.ctrlKey){
+        screen.offsetY -= screen.unitSize
+      }
       screen.selectY += 1;
       break;
   }
