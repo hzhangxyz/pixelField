@@ -14,3 +14,7 @@
 手机端
 
 addPoint query 不要每次从根节点开始找,也许能走捷径
+
+同时addpoint 太多的话..会重复创建treenode
+
+后续效果为server点比client点多[原因位置]

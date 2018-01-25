@@ -81,6 +81,7 @@ class Screen{
     this.ws.screen = this
     console.log("connection open...")
     this.ws.onmessage = function(evt) {//this is this.ws
+      console.log("server",JSON.parse(evt.data).length)
       for(var i of JSON.parse(evt.data)){
         this.screen.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},i.t,"s")
       }
@@ -95,6 +96,7 @@ class Screen{
       this.ws.query(...this.getRange(),0);
     }
     var data = await this.tree.query(...this.getRange(),0);
+    console.log("local",data.length)
     for(var i of data){
       this.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},0,"l");
     }
