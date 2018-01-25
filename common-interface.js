@@ -1,9 +1,15 @@
 var edgeSize = 128;
+var timeout = 600000;
 
 class TimeLine{
   constructor(){
     this.data = [];//Array(edgeSize*edgeSize*2);
     this.inited = false;
+    setTimeout(()=>{
+      setInterval(()=>{
+        this.fresh()
+      },timeout)
+    },Math.round(Math.random()*timeout))
   }
   async __addPoint(point, color, time){
     this.dataModified = [];
@@ -42,15 +48,19 @@ class TimeLine{
   async fresh(){
     await this.init()
     var tmpData = [];
+    var flag = false;
     for(var i of this.data){
       if(i.abandoned){
+        flag = true;
         continue;
       }
       tmpData.push(i);
     }
-    delete this.data;
-    this.data = tmpData
-    await this.save_fresh()
+    if(flag){
+      delete this.data;
+      this.data = tmpData
+      await this.save_fresh()
+    }
   }
   async init(){//load data
     if(this.inited){

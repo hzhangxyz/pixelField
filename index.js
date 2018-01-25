@@ -23,6 +23,9 @@ var timeout = 600000;
 })().then((res)=>{
 
   var tree = res[0];
+  setInterval(()=>{
+    tree.findAncestor().then((n)=>{tree=n})
+  },timeout)
   process.on('exit',res[1])
 
   app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
