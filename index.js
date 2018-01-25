@@ -5,6 +5,7 @@ var app = express()
 var expressWs = require('express-ws')(app);
 
 var timeout = 600000;
+var timeerr = 30*60*60*1000;
 
 (async ()=>{
   var c
@@ -58,13 +59,16 @@ var timeout = 600000;
               //console.log(res)
             })
           }else{
-            throw "Error Data"
+            throw "Error Format"
           }
         }else{
           //console.log(data)
           if(isNum(data[0].x,data[0].y,data[1].r,data[1].g,data[1].b,data[2])){
-            ws.refreshTime = Date.now()
-            var time = ws.refreshTime
+            var time = Date.now()
+            if(Math.abs(time-data[2])>timeerr){
+              throw "Error Time"
+            }
+            ws.refreshTime = time
             tree.addPoint(data[0],data[1],time)
             var toSend = JSON.stringify([{x:data[0].x,y:data[0].y,r:data[1].r,g:data[1].g,b:data[1].b,t:time,abandoned:false}]);
             for(var i of wsList){
@@ -86,7 +90,7 @@ var timeout = 600000;
               }
             }
           }else{
-            throw "Error Data"
+            throw "Error Format"
           }
         }
       }catch(e){

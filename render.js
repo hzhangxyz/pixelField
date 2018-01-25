@@ -92,6 +92,7 @@ class Screen{
       this.addPoint({x:i.x,y:i.y},{r:i.r,g:i.g,b:i.b},0,"l");
     }
     this.two.update();
+    console.log("local loaded")
   }
   getRange(){
     var w = this.two.width/this.unitSize;
@@ -184,6 +185,9 @@ $("#container").bind("mousedown",(e)=>{
 })
 $("#container").bind("mouseup",(e)=>$("#container").unbind("mousemove"))
 
+if(screen.two.type != "SVGRenderer"){
+  $(window).bind("resize",()=>screen.two.update())
+}
 //一些键盘操作
 $(window).bind("keydown",function(e) {
   switch(e.keyCode){

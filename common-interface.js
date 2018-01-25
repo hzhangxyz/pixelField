@@ -14,9 +14,10 @@ class TimeLine{
   async __addPoint(point, color, time){
     this.dataModified = [];
     var flag = true
-    for(var i=0;i<this.data.length-1;i++){
-      if(this.data[i] && this.data[i].x==point.x && this.data[i].y==point.y){
-        if(this.data[i].r == color.r && this.data[i].g == color.g && this.data[i].b == color.b && this.data[i].t == time){
+    for(var i=0;i<this.data.length;i++){
+      if(this.data[i] && !this.data[i].abandoned && this.data[i].x==point.x && this.data[i].y==point.y){
+        if(this.data[i].r == color.r && this.data[i].g == color.g && this.data[i].b == color.b){
+          // 需要检查time相等么? => 貌似不需要的
           flag = false;
           break;
         }
@@ -26,9 +27,8 @@ class TimeLine{
     }
     if(flag){
       this.data.push({x:point.x, y:point.y, r:color.r, g:color.g, b:color.b, t:time, abandoned:false});
-      await this.save_point();
     }
-    if(this.dataModified.length!=0){
+    if(this.dataModified.length!=0 || flag){
       await this.save_point();
     }
   }

@@ -1,6 +1,7 @@
 var prefix = "Node_";
 var prefixLength = prefix.length;
 
+var saveMaxTimeDiff = 1000;
 
 async function getCollection(){
   return localStorage;
@@ -76,9 +77,9 @@ class LocalStorageTreeNode extends TreeNode{
         father:this.getId(this.father),
         leftSon:this.getId(this.leftSon),
         rightSon:this.getId(this.rightSon)
-      },1000);
+      });
       delete this.saveHandle
-    })
+    },saveMaxTimeDiff)
   }
 }
 
