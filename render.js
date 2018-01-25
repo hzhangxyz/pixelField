@@ -30,10 +30,15 @@ class Screen{
     this.screen = this
     this.dotter = setInterval(()=>{$("#dots").append(".")},50);
 
+    this.twoType = Two.Types.svg
     this.two = new Two({
       fullscreen: true,
-      type: Two.Types.svg,
+      type: this.twoType,
       // autostart: true
+    }).appendTo(document.getElementById("container"));
+    this.selectRectCanvas = new Two({
+      fullscreen: true,
+      type: this.twoType,
     }).appendTo(document.getElementById("container"));
 
     this.tree = getTree();
@@ -62,11 +67,13 @@ class Screen{
 
     this.group = this.two.makeGroup();
 
-    this.selectRect = this.two.makeRectangle(0, 0, this.unitSize, this.unitSize);
+    this.selectRect = this.selectRectCanvas.makeRectangle(0, 0, this.unitSize, this.unitSize);
     this.selectRect.fill = "rgba(255, 0, 0, 0)";
 
-    this.two.screen = this
     this.two.bind('update',this.fresh)
+    this.selectRectCanvas.bind('update',this.freshRect)
+    this.two.screen = this
+    this.selectRectCanvas.screen = this
   }
   async init(){//query from local and server
     this.tree = await this.tree
@@ -119,6 +126,8 @@ class Screen{
   }
   fresh(){//this is this.two
     this.screen.group.translation.set(this.screen.offsetX, this.screen.offsetY);
+  }
+  freshRect(){
     this.screen.selectRect.translation.set(this.screen.selectX*this.screen.unitSize+this.screen.offsetX,
       this.screen.selectY*this.screen.unitSize+this.screen.offsetY);
   }
@@ -176,24 +185,30 @@ $("#container").bind("mousedown",(e)=>{
   var startY=e.pageY;
   var tmpOffsetX = screen.offsetX;
   var tmpOffsetY = screen.offsetY;
-  screen.two.update()
+  screen.selectRectCanvas.update()
   $("#container").bind("mousemove",(es)=>{
     screen.offsetX = es.pageX - startX + tmpOffsetX
     screen.offsetY = es.pageY - startY + tmpOffsetY
     screen.two.update()
+    screen.selectRectCanvas.update()
   });
 })
 $("#container").bind("mouseup",(e)=>$("#container").unbind("mousemove"))
 
 if(screen.two.type != "SVGRenderer"){
-  $(window).bind("resize",()=>screen.two.update())
+  $(window).bind("resize",()=>{
+    screen.two.update()
+    screen.selectRectCanvas.update()
+  })
 }
 //一些键盘操作
 $(window).bind("keydown",function(e) {
+  if(e.keyCode == 32){
+    //空格
+    screen.colorIt();
+    return;
+  }
   switch(e.keyCode){
-    case 32://空格
-      screen.colorIt()
-      break;
     case 37://left
       if(e.ctrlKey){
         screen.offsetX += screen.unitSize
@@ -220,7 +235,11 @@ $(window).bind("keydown",function(e) {
       break;
   }
   $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
-  screen.two.update()
+  if(e.ctrlKey){
+    screen.two.update()
+  }else{
+    screen.selectRectCanvas.update()
+  }
 });
 
 //color it
