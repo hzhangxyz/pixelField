@@ -1,12 +1,49 @@
 function main(){
 
+  var argv = require("yargs")
+    .usage("$0 [args]")
+    .option("port",{
+      alias: "p",
+      default: "4250",
+      type: "number",
+    })
+    .option("edgeSize",{
+      default: 128,
+      type: "number",
+      describe: "unit cell size"
+    })
+    .option("edgeMax",{
+      default: 2048,
+      type: "number",
+      describe: "query max size"
+    })
+    .option("savePeriod",{
+      default: 1000,
+      type: "number",
+      describe: "min interval save point"
+    })
+    .option("keepAliveTime",{
+      default: 1000,
+      type: "number",
+      describe: "keepalive param for db link"
+    })
+    .option("mongodb",{
+      alias: ["d","url"],
+      default: "mongodb://localhost:27017/pixelField",
+    })
+    .option("collection",{
+      alias: ["c","collectionName"],
+      default: "tree"
+    })
+    .version(false)
+    .argv
+  // edgeSize, edgeMax, savePeriod, keepAliveTime, url, collectionName
+
   var express = require("express")
   var app = express()
   var expressWs = require("express-ws")(app);
-  var TreeNode = require("./model.js").getTreeNode({
-    url: process.argv[2]
-    modelName: process.argv[3]
-  })
+
+  var TreeNode = require("./model.js").getTreeNode(argv)
 
   var timeout = 600000;
   var timeerr = 30*60*60*1000;
@@ -82,5 +119,7 @@ function main(){
       }
     });
   });
-  app.listen(3000, () => console.log('Example app listening on port 3000!'))
+  app.listen(argv.port, () => console.log(`Example app listening on port ${argv.port}!`))
 }
+
+main()

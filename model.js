@@ -8,7 +8,7 @@ function getTreeNode(arg){
   var savePeriod = arg.savePeriod || 1000;
   var keepAliveTime = arg.keepAliveTime || 1000;
   var url = arg.url || "mongodb://localhost:27017/pixelField"
-  var modelName = arg.modelName || "tree"
+  var collectionName = arg.collectionName || "tree"
 
   var treeSchema = new mongoose.Schema({
     // save x*edgeSize (1+x)*edgeSize, y ... info
@@ -145,7 +145,7 @@ function getTreeNode(arg){
   })
 
   var db = mongoose.createConnection(url,{keepAlive: 1000})
-  var TreeNode = db.model(modelName,treeSchema);
+  var TreeNode = db.model(collectionName,treeSchema,collectionName);
 }
 
 module.exports = {
