@@ -14,6 +14,7 @@ function getWs(closeFunc){
     }
     // ws.query 与 tree.query 不一样
     ws.onopen=()=>{
+      setInterval(()=>ws.send("{}"),30000)
       resolve(ws)
     }
   })

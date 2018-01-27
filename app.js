@@ -100,7 +100,7 @@ function main(){
           }else{
             throw "Error Format"
           }
-        }else{
+        }else if(isNum(data.t)){//add point
           //console.log(data)
           if(isNum(data.x,data.y,data.r,data.g,data.b,data.t)){
             var time = Date.now()
