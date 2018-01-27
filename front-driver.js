@@ -20,9 +20,13 @@ function getWs(closeFunc){
 }
 
 class Screen{
-  constructor(){
+  constructor(argv){
+    this.dotter = argv.dotter
+    this.loaded = argv.loaded
+    this.socketClose = argv.socketClose
+    this.getColor = argv.getColor
+
     this.screen = this
-    this.dotter = setInterval(()=>{$("#dots").append(".")},50);
 
     this.twoType = Two.Types.svg
     this.two = new Two({
@@ -37,7 +41,16 @@ class Screen{
 
     this.tree = getTreeNode();
 
-    this.ws = getWs(()=>{this.loaded(),this.socketClose()})
+    this.ws = getWs(()=>{
+      if(!this.inited){
+        this.loaded(this.dotter)
+      }
+      this.socketClose()
+      this.useServer = false;
+      if(!this.inited){
+        this.query()
+      }
+    })
 
     this.unitSize = 10; // 一个点的大小
     this.cacheParam = 1 // 预加载周围多大的范围
@@ -84,7 +97,7 @@ class Screen{
       this.screen.two.update()
     };
     await this.query()
-    this.loaded();
+    this.loaded(this.dotter);
     this.inited = true;
   }
   async query(){
@@ -138,38 +151,20 @@ class Screen{
     this.screen.selectRect.translation.set(this.screen.selectX*this.screen.unitSize+this.screen.offsetX,
       this.screen.selectY*this.screen.unitSize+this.screen.offsetY);
   }
-  loaded(){
-    if(this.inited){
-      return
-    }
-    $("#loaded").css("display","block")
-    $("#loading").css("display","none")
-    clearInterval(this.dotter)
-    $("#clear").css("display","none")
-  }
-  socketClose(){
-    console.log('Connection closed.');
-    this.useServer = false;
-    $("#closed").html("Connection Closed");
-    $("#clear").css("display","inline")
-    if(!this.inited){
-      this.query()
-    }
-  }
   colorIt(){
-    var color = $("#color").val();
+    var color = this.getColor();
     var param = {
       x:this.selectX,
       y:this.selectY,
-      r:parseInt(color.substr(1,2),16),
-      g:parseInt(color.substr(3,2),16),
-      b:parseInt(color.substr(5,2),16),/////////////////////
+      r:color[0],
+      g:color[1],
+      b:color[2],
       t:Date.now()
     };
     this.addPoints([param],"h");
     this.two.update()
   }
-  clearCanvas(){//////////////
+  clearCanvas(){
     this.tree.dropData()
     this.group.children.map((n)=>n).map((n)=>n.remove())
     this.two.update()
@@ -179,7 +174,26 @@ class Screen{
 
 // html 相关的
 
-var screen =  new Screen();
+var screen =  new Screen({
+  loaded: (dotter)=>{
+    $("#loaded").css("display","block")
+    $("#loading").css("display","none")
+    clearInterval(dotter)
+    $("#clear").css("display","none")
+  },
+  socketClose: ()=>{
+    console.log('Connection closed.');
+    $("#closed").html("Connection Closed");
+    $("#clear").css("display","inline")
+  },
+  dotter: setInterval(()=>{$("#dots").append(".")},50),
+  getColor: ()=>{
+    var color = $("#color").val();
+    return [parseInt(color.substr(1,2),16),
+      parseInt(color.substr(3,2),16),
+      parseInt(color.substr(5,2),16)]
+  }
+});
 screen.init()
 
 //拖动的时候...
@@ -215,40 +229,89 @@ $(window).bind("keydown",function(e) {
   if(e.keyCode == 32){
     //空格
     screen.colorIt();
-    return;
   }
-  switch(e.keyCode){
-    case 37://left
-      if(e.ctrlKey){
-        screen.offsetX += screen.unitSize
-      }
-      screen.selectX -= 1;
-      break;
-    case 38://up
-      if(e.ctrlKey){
-        screen.offsetY += screen.unitSize
-      }
-      screen.selectY -= 1;
-      break;
-    case 39://right
-      if(e.ctrlKey){
-        screen.offsetX -= screen.unitSize
-      }
-      screen.selectX += 1;
-      break;
-    case 40://down
-      if(e.ctrlKey){
-        screen.offsetY -= screen.unitSize
-      }
-      screen.selectY += 1;
-      break;
+  if(37<=e.keyCode && e.keyCode<=40){
+    switch(e.keyCode){
+      case 37://left
+        if(e.ctrlKey){
+          screen.offsetX += screen.unitSize
+        }
+        screen.selectX -= 1;
+        break;
+      case 38://up
+        if(e.ctrlKey){
+          screen.offsetY += screen.unitSize
+        }
+        screen.selectY -= 1;
+        break;
+      case 39://right
+        if(e.ctrlKey){
+          screen.offsetX -= screen.unitSize
+        }
+        screen.selectX += 1;
+        break;
+      case 40://down
+        if(e.ctrlKey){
+          screen.offsetY -= screen.unitSize
+        }
+        screen.selectY += 1;
+        break;
+    }
+    location.hash=`${screen.selectX},${screen.selectY}`;
+    $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
+    if(e.ctrlKey){
+      screen.two.update()
+    }else{
+      screen.selectRectCanvas.update()
+    }
   }
-  location.hash=`${screen.selectX},${screen.selectY}`;
-  $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
-  if(e.ctrlKey){
-    screen.two.update()
-  }else{
-    screen.selectRectCanvas.update()
+  if(65<=e.keyCode && e.keyCode<=87){
+    var color = $("#color").val()
+    var colorData = [parseInt(color.substr(1,2),16),
+      parseInt(color.substr(3,2),16),
+      parseInt(color.substr(5,2),16)]
+    var scale = 16
+    var tmp
+    switch(e.keyCode){
+      case 81:
+        if(colorData[0]+scale<=255)
+          colorData[0] += scale;
+        break;
+      case 87:
+        if(colorData[1]+scale<=255)
+          colorData[1] += scale;
+        break;
+      case 69:
+        if(colorData[2]+scale<=255)
+          colorData[2] += scale;
+        break;
+      case 65:
+        if(colorData[0]-scale>=0)
+          colorData[0] -= scale;
+        break;
+      case 83:
+        if(colorData[1]-scale>=0)
+          colorData[1] -= scale;
+        break;
+      case 68:
+        if(colorData[2]-scale>=0)
+          colorData[2] -= scale;
+        break;
+    }
+    //q 81
+    //w 87
+    //e 69
+    //a 65
+    //s 83
+    //d 68
+    var res = "#"+colorData.map((n)=>{
+      var s = n.toString(16)
+      if(s.length==1){
+        s = `0${s}`
+      }
+      return s
+    }).join("")
+    $("#color").val(res)
   }
 });
 
