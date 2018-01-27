@@ -54,7 +54,7 @@ class Screen{
     })
 
     this.unitSize = 10; // 一个点的大小
-    this.cacheParam = 1 // 预加载周围多大的范围
+    this.cacheParam = 2 // 预加载周围多大的范围
     this.offsetX = this.two.width/2;
     this.offsetY = this.two.height/2;
 
@@ -82,7 +82,15 @@ class Screen{
     this.selectRectCanvas.bind('update',this.freshRect)
     this.two.screen = this
     this.selectRectCanvas.screen = this
+
+    this.centorX = this.offsetX
+    this.centorY = this.offsetY
   }
+  checkRequery(){
+    if(Math.abs(this.centorX-this.offsetX) > this.two.width || Math.abs(this.centorY-this.offsetY) > this.two.height){
+      this.query()
+    }
+  }// 这样的话local的点会重复add ...!!!!!!!!!
   async init(){//query from local and server
     this.tree = await this.tree
     this.ws = await this.ws
