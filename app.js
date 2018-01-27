@@ -67,6 +67,7 @@ function main(){
 
   app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
   app.get('/front-model.js', (req, res)=>{res.sendFile("front-model.js",{root: __dirname})})
+  app.get('/front-screen.js', (req, res)=>{res.sendFile("front-screen.js",{root: __dirname})})
   app.get('/front-driver.js', (req, res)=>{res.sendFile("front-driver.js",{root: __dirname})})
 
   var wsList = new Set([]);
