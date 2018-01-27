@@ -1,6 +1,9 @@
 "use strict"
 
 function getTreeNode(arg){
+  if(!arg){
+    arg = {}
+  }
   var edgeSize = arg.edgeSize || 128
   var TreeNode = arg.local || localforage;
   var savePeriod = arg.savePeriod || 1000
@@ -24,7 +27,7 @@ function getTreeNode(arg){
     var ye = Math.floor(y2/edgeSize)
     var meta = [];
     for(var x=xs;x<=xe;x++){
-      for(var y=ys;y<ye;y++){
+      for(var y=ys;y<=ye;y++){
         meta.push(this.queryOne(this.getTreeName(x,y)))
       }
     }
@@ -41,10 +44,10 @@ function getTreeNode(arg){
   TreeNode.addPoints = function(data){
     var meta = []
     for(var i of data){
-      var x = Math.floor(i.x)
-      var y = Math.floor(i.y)
+      var x = Math.floor(i.x/edgeSize)
+      var y = Math.floor(i.y/edgeSize)
       var keyName = this.getTreeName(x,y)
-      if(typeof tmp[keyName] == "undefined"){
+      if(typeof this.tmp[keyName] == "undefined"){
         this.tmp[keyName] = [i]
       }else{
         this.tmp[keyName].push(i)
@@ -63,7 +66,7 @@ function getTreeNode(arg){
     this.lock[key] = 1
     delete this.flag[key]
     var preTmp = this.tmp[key]
-    delete this.tmp(key)
+    delete this.tmp[key]
     var preTree = this.getItem(key)
 
     var tmp = []
@@ -95,12 +98,14 @@ function getTreeNode(arg){
         }
       }
       if(flag){
-        tree.push(i)
+        newTree.push(i)
       }
     }
     var res = JSON.stringify(newTree.concat(tmp))
-    await setItem(key,res)
+    await this.setItem(key,res)
 
     delete this.lock[key]
   }
+
+  return TreeNode
 }

@@ -49,9 +49,8 @@ function main(){
   var timeerr = 30*60*60*1000;
 
   app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
-  app.get('/common-interface.js', (req, res)=>{res.sendFile("common-interface.js",{root: __dirname})})
-  app.get('/local-storage-interface.js', (req, res)=>{res.sendFile("local-storage-interface.js",{root: __dirname})})
-  app.get('/render.js', (req, res)=>{res.sendFile("render.js",{root: __dirname})})
+  app.get('/front-model.js', (req, res)=>{res.sendFile("front-model.js",{root: __dirname})})
+  app.get('/front-driver.js', (req, res)=>{res.sendFile("front-driver.js",{root: __dirname})})
 
   var wsList = new Set([]);
   function isNum(){

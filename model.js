@@ -3,6 +3,10 @@
 function getTreeNode(arg){
   var mongoose = require('mongoose');
 
+  if(!arg){
+    arg = {}
+  }
+
   var edgeSize = arg.edgeSize || 128;
   var edgeMax = arg.edgeMax || 2048;
   var savePeriod = arg.savePeriod || 1000;
@@ -81,7 +85,7 @@ function getTreeNode(arg){
     if(tree){
       var time = new Date(t);
       for(var i=tree.data.length-1;i>=0;i--){
-        if(time=>i.t){
+        if(time>=i.t){
           break;
         }
         tmp.push(tree.data[i])
@@ -99,7 +103,7 @@ function getTreeNode(arg){
     var ye = Math.floor(y2/edgeSize)
     var meta = [];
     for(var x=xs;x<=xe;x++){
-      for(var y=ys;y<ye;y++){
+      for(var y=ys;y<=ye;y++){
         meta.push(this.queryOne(x,y,t))
       }
     }
@@ -126,7 +130,6 @@ function getTreeNode(arg){
     this.saveHandle = setTimeout(()=>{this.save()},savePeriod);
   }
   treeSchema.pre("save",function(next){
-    console.log(this.data)
     for(var i=this.data.length-1;i>this.lastTop;i--){
       for(var j=0;j<i;j++){
         if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
@@ -139,7 +142,6 @@ function getTreeNode(arg){
         }
       }
     }
-    console.log(this.data)
     this.lastTop = this.data.length
     next()
   })
