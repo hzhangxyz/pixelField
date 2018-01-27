@@ -1,13 +1,13 @@
 "use strict"
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function getTreeNode(arg){
   var edgeSize = arg.edgeSize || 128
   var TreeNode = arg.local || localforage;
   var savePeriod = arg.savePeriod || 1000
+
+  function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   TreeNode.dropData = TreeNode.clear;
   TreeNode.tmp = {}
@@ -43,7 +43,7 @@ function getTreeNode(arg){
     for(var i of data){
       var x = Math.floor(i.x)
       var y = Math.floor(i.y)
-      var keyName = `${x}_${y}`
+      var keyName = this.getTreeName(x,y)
       if(typeof tmp[keyName] == "undefined"){
         this.tmp[keyName] = [i]
       }else{
@@ -62,15 +62,15 @@ function getTreeNode(arg){
 
     this.lock[key] = 1
     delete this.flag[key]
-
-    var preTree = this.getItem(key)
     var preTmp = this.tmp[key]
     delete this.tmp(key)
+    var preTree = this.getItem(key)
+
     var tmp = []
     for(var i=0;i<preTmp.length;i++){
       var flag = true
       for(var j=i+1;j<preTmp.length;j++){
-        if(preTmp[i].x == preTmp[j].x && preTmp[i].x == preTmp[j].x){
+        if(preTmp[i].x == preTmp[j].x && preTmp[i].y == preTmp[j].y){
           flag = false;
           break
         }
