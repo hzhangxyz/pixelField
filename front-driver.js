@@ -112,10 +112,17 @@ class Screen{
       this.tree.addPoints(points)
     }
     if(flag=="h" && this.useServer){
-      this.ws.addPoints(points) ////////////////////
+      this.ws.addPoints(points)
     }
 
-    for(var point of points){
+    var l = points.length
+    for(var i=0;i<l;i++){
+      var point
+      if(flag="s"){//反向point
+        point = points[l-i-1]
+      }else{
+        point = points[i]
+      }
       var rect = this.two.makeRectangle(point.x*this.unitSize, point.y*this.unitSize, this.unitSize, this.unitSize);
       rect.fill = `rgb(${point.r},${point.g},${point.b})`
       rect.noStroke()

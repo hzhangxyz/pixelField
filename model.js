@@ -80,17 +80,20 @@ function getTreeNode(arg){
   };
   treeSchema.statics.queryOne = async function(x,y,t){
     var tree = await this.getTree(x,y,false);
-    var tmp = [];
+    var res = [];
     if(tree){
       var time = new Date(t);
       for(var i=tree.data.length-1;i>=0;i--){
         if(time>=i.t){
           break;
         }
-        tmp.push(tree.data[i])
+        var tmp = tree.data[i]
+        delete tmp._id
+        tmp.t = (new Date(tmp.t)).getTime()
+        res.push(tmp)
       }
     }
-    return tmp
+    return res
   }
   treeSchema.statics.query = async function(x1,y1,x2,y2,t){
     if(x2-x1 > edgeMax || y2-y1 > edgeMax){

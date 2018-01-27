@@ -47,6 +47,10 @@ function getTreeNode(arg){
       var x = Math.floor(i.x/edgeSize)
       var y = Math.floor(i.y/edgeSize)
       var keyName = this.getTreeName(x,y)
+      i.t = (new Date(i.t)).getTime()
+      if(i._id){
+        delete i._id
+      }
       if(typeof this.tmp[keyName] == "undefined"){
         this.tmp[keyName] = [i]
       }else{
