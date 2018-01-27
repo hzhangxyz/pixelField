@@ -1,4 +1,5 @@
 "use strict"
+require("babel-polyfill")
 
 function getTreeNode(arg){
   var mongoose = require('mongoose');

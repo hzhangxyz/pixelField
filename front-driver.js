@@ -1,3 +1,5 @@
+"use strict"
+
 function getWs(closeFunc){
   return new Promise((resolve)=>{
     var ws = new WebSocket((location.origin+location.pathname).replace("http","ws"));

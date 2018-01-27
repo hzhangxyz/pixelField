@@ -1,3 +1,6 @@
+"use strict"
+require("babel-polyfill")
+
 function main(){
 
   var argv = require("yargs")
