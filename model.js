@@ -28,8 +28,8 @@ function getTreeNode(arg){
     },
     d: {
       type: [{
-        x: {type: Number,required: true, integer:true, index: true},
-        y: {type: Number,required: true, integer:true, index: true},
+        x: {type: Number,required: true, integer:true},
+        y: {type: Number,required: true, integer:true},
         r: {type: Number,required: true, integer:true, min:0, max:255},
         g: {type: Number,required: true, integer:true, min:0, max:255},
         b: {type: Number,required: true, integer:true, min:0, max:255},
@@ -40,7 +40,6 @@ function getTreeNode(arg){
     },
   });
   treeSchema.index({x:1,y:1},{unique:true})
-  //treeSchema.index({d:[{x:1,y:1}]},{})//?????????????????????????????????????????????
   treeSchema.statics.getTree = async function(x,y,create=true){
     x = Math.floor(x)
     y = Math.floor(y)
@@ -127,16 +126,19 @@ function getTreeNode(arg){
     if(this.saveHandle){
       return;
     }
-    this.saveHandle = setTimeout(()=>{this.save()},savePeriod);
+    this.saveHandle = setTimeout(()=>{
+      this.save()
+      delete this.saveHandle
+    },savePeriod);
   }
   treeSchema.pre("save",function(next){
-    for(var i=this.data.length-1;i>this.lastTop;i--){
+    for(var i=this.data.length-1;i>=this.lastTop;i--){
       for(var j=0;j<i;j++){
         if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
           this.data.splice(j,1);
           i--;
           j--;
-          if(j<=this.lastTop){
+          if(j<this.lastTop){
             this.lastTop--;
           }
         }
