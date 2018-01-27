@@ -255,3 +255,7 @@ $(window).bind("keydown",function(e) {
 //color it
 $("#button").bind("click",()=>screen.colorIt())
 $("#clear").bind("click",()=>screen.clearCanvas())
+
+//人性化响应
+
+$("#color").bind("change",()=>$("#color").blur())

@@ -9,6 +9,7 @@ function main(){
       alias: "p",
       default: "4250",
       type: "number",
+      describe: "port to listen"
     })
     .option("edgeSize",{
       default: 128,
@@ -18,17 +19,17 @@ function main(){
     .option("edgeMax",{
       default: 2048,
       type: "number",
-      describe: "query max size"
+      describe: "max query size"
     })
     .option("savePeriod",{
       default: 1000,
       type: "number",
-      describe: "min interval save point"
+      describe: "interval to save"
     })
     .option("keepAliveTime",{
       default: 1000,
       type: "number",
-      describe: "keepalive param for db link"
+      describe: "db keepalive"
     })
     .option("mongodb",{
       alias: ["d","url"],
@@ -36,7 +37,20 @@ function main(){
     })
     .option("collection",{
       alias: ["c","collectionName"],
-      default: "tree"
+      default: "tree",
+      describe: "collection name"
+    })
+    .option("timeOut",{
+      alias: ["m","timeout"],
+      type: "number",
+      default: 600000,
+      describe: "client timeout"
+    })
+    .option("timeErr",{
+      alias: ["e","timeerr"],
+      type: "number",
+      default: 600000,
+      describe: "C/S max time diff"
     })
     .version(false)
     .argv
@@ -48,8 +62,8 @@ function main(){
 
   var TreeNode = require("./model.js").getTreeNode(argv)
 
-  var timeout = 600000;
-  var timeerr = 30*60*60*1000;
+  var timeout = argv.timeout;
+  var timeerr = argv.timeerr;
 
   app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
   app.get('/front-model.js', (req, res)=>{res.sendFile("front-model.js",{root: __dirname})})
@@ -121,7 +135,7 @@ function main(){
       }
     });
   });
-  app.listen(argv.port, () => console.log(`Example app listening on port ${argv.port}!`))
+  app.listen(argv.port, () => console.log(`App listening on port ${argv.port}!`))
 }
 // 与上一个版本的不同
 // query 返回值 [] => [[]] 且倒序
