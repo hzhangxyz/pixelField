@@ -8,7 +8,7 @@
     "debug": "DEBUG=--no-babelrc sh +x build.sh",
     "mongodb": "mongod --dbpath=./data --logpath=./data/log",
     "cleardb": "mongo --eval 'db.tree.drop()' pixelField",
-    "start": "node ./tmp/app.js | nodejs ./tmp/app.js"
+    "start": "node ./build/app.js | nodejs ./build/app.js"
   },
   "repository": {
     "type": "git",
