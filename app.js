@@ -92,7 +92,7 @@ function main(){
             }
             ws.refreshTime = time
             TreeNode.addPoints([data])
-            var toSend = JSON.stringify([data]);
+            var toSend = JSON.stringify([[data]]);
             for(var i of wsList){
               if(i==ws){
                 continue
@@ -121,5 +121,8 @@ function main(){
   });
   app.listen(argv.port, () => console.log(`Example app listening on port ${argv.port}!`))
 }
+// 与上一个版本的不同
+// query 返回值 [] => [[]] 且倒序
+// addpoint p,c,t => {x,y,r,g,b,t}
 
 main()

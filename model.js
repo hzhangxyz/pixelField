@@ -146,6 +146,8 @@ function getTreeNode(arg){
 
   var db = mongoose.createConnection(url,{keepAlive: 1000})
   var TreeNode = db.model(collectionName,treeSchema,collectionName);
+
+  return TreeNode
 }
 
 module.exports = {
