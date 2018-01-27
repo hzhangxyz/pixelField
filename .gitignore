@@ -1,10 +1,4 @@
 node_modules
 package-lock.json
-data/journal/
-data/log*
-data/mongod.lock
-data/*.0
-data/*.ns
-compressed.*
-build/*.js
-build/*.html
+data
+build
