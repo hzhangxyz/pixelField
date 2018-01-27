@@ -29,7 +29,7 @@ function getTreeNode(arg){
   }
   TreeNode.getTreeTime = async function(x,y){
     var res = await this.getItem(this.getTreeTimeName(x,y))
-    console.log(x,y,res)
+    //console.log(x,y,res)
     if(res){
       return parseInt(res);
     }else{

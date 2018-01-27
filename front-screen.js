@@ -101,7 +101,7 @@ class Screen{
       }
       console.log("server",num)
       this.screen.two.update()
-      if(times[0]!=0){
+      if(times.length!=0){
         await this.screen.tree.coverTime(recv.x1,recv.y1,recv.x2,recv.y2,Math.max(...times))
       }
     };
