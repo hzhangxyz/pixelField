@@ -9,7 +9,7 @@ function getWs(closeFunc){
       ws.send(JSON.stringify(points[0]))
     }
     ws.query=(x1, y1, x2, y2, time)=>{
-      //console.log(x1,y1,x2,y2,time)
+      //console.log(time)
       ws.send(JSON.stringify({time, x1, y1, x2, y2}));
     }
     // ws.query 与 tree.query 不一样
@@ -88,14 +88,22 @@ class Screen{
     this.ws = await this.ws
     this.ws.screen = this
     console.log("connection open...")
-    this.ws.onmessage = function(evt) {//this is this.ws
+    this.ws.onmessage = async function(evt) {//this is this.ws
       var num = 0;
-      for(var i of JSON.parse(evt.data)){
+      var recv = JSON.parse(evt.data)
+      var times = [];
+      for(var i of recv.data){
         this.screen.addPoints(i,"s")
         num += i.length
+        if(i[0]){
+          times.push(i[0].t)
+        }
       }
       console.log("server",num)
       this.screen.two.update()
+      if(times[0]!=0){
+        await this.screen.tree.coverTime(recv.x1,recv.y1,recv.x2,recv.y2,Math.max(...times))
+      }
     };
     await this.query()
     this.loaded(this.dotter);
@@ -103,9 +111,9 @@ class Screen{
   }
   async query(){
     if(this.useServer){
-      this.ws.query(...this.getRange());
+      this.ws.query(...await this.getRange());
     }
-    var data = await this.tree.query(...this.getRange());
+    var data = await this.tree.query(...await this.getRange());
     var num = 0
     for(var i of data){
       this.addPoints(i,"l");
@@ -114,14 +122,15 @@ class Screen{
     this.two.update();
     console.log("local",num)
   }
-  getRange(){
+  async getRange(){
     var w = this.two.width/this.unitSize;
     var h = this.two.height/this.unitSize;
     var x = -this.offsetX/this.unitSize;
     var y = -this.offsetY/this.unitSize;
     var c = this.cacheParam
-    var res = [ x - c*w, y - c*h, x + (1+c)*w, y + (1+c)*h, 0]
-    return res
+    var res = [ x - c*w, y - c*h, x + (1+c)*w, y + (1+c)*h]
+    var t = await this.tree.queryTime(...res)
+    return [...res,t]
   }
   addPoints(points, flag){
     if(flag!="l"){

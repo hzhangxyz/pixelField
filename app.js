@@ -94,7 +94,8 @@ function main(){
           if(isNum(data.x1,data.y1,data.x2,data.y2,data.time)){
             ws.refreshTime = Date.now()
             TreeNode.query(data.x1,data.y1,data.x2,data.y2,data.time).then((res)=>{
-              ws.send(JSON.stringify(res))
+              data.data = res
+              ws.send(JSON.stringify(data))
               //console.log(res)
             })
           }else{
@@ -129,6 +130,8 @@ function main(){
           }else{
             throw "Error Format"
           }
+        }else{
+          //console.log(data)
         }
       }catch(e){
         console.log(e)

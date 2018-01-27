@@ -20,6 +20,49 @@ function getTreeNode(arg){
   TreeNode.getTreeName = function(x,y){
     return `${x}_${y}`
   }
+  TreeNode.getTreeTimeName = function(x,y){
+    return `T${x}_${y}`
+  }
+
+  TreeNode.setTreeTime = async function(x,y,t){
+    await this.setItem(this.getTreeTimeName(x,y),t.toString())
+  }
+  TreeNode.getTreeTime = async function(x,y){
+    var res = await this.getItem(this.getTreeTimeName(x,y))
+    console.log(x,y,res)
+    if(res){
+      return parseInt(res);
+    }else{
+      return 0;
+    }
+  }
+  TreeNode.coverTime = async function(x1,y1,x2,y2,t){
+    var xs = Math.floor(x1/edgeSize)
+    var xe = Math.floor(x2/edgeSize)
+    var ys = Math.floor(y1/edgeSize)
+    var ye = Math.floor(y2/edgeSize)
+    var meta = [];
+    for(var x=xs;x<=xe;x++){
+      for(var y=ys;y<=ye;y++){
+        meta.push(this.setTreeTime(x,y,t))
+      }
+    }
+    return await Promise.all(meta)
+  }
+  TreeNode.queryTime = async function(x1,y1,x2,y2){
+    var xs = Math.floor(x1/edgeSize)
+    var xe = Math.floor(x2/edgeSize)
+    var ys = Math.floor(y1/edgeSize)
+    var ye = Math.floor(y2/edgeSize)
+    var meta = [];
+    for(var x=xs;x<=xe;x++){
+      for(var y=ys;y<=ye;y++){
+        meta.push(this.getTreeTime(x,y))
+      }
+    }
+    return Math.min(...await Promise.all(meta))
+  }
+
   TreeNode.query = async function(x1,y1,x2,y2){
     var xs = Math.floor(x1/edgeSize)
     var xe = Math.floor(x2/edgeSize)

@@ -85,7 +85,7 @@ function getTreeNode(arg){
     if(tree){
       var time = new Date(t);
       for(var i=tree.data.length-1;i>=0;i--){
-        if(time>=i.t){
+        if(time>=tree.data[i].t){
           break;
         }
         var tmp = tree.data[i]
