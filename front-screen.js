@@ -111,7 +111,7 @@ class Screen{
           for(var i of recv){
             this.screen.addPoints(i.data,"s")
             num += i.data.length
-            await this.screen.tree.setTreeTime(i.x,i.y,i.time)
+            this.screen.tree.setTreeTime(i.x,i.y,i.time)
           }
           console.log("server",num)
           this.screen.two.update()
@@ -119,7 +119,7 @@ class Screen{
         if(typeof recv[0].t != "undefined"){
           this.screen.addPoints(recv)
           for(var i of recv){
-            await this.screen.tree.setTreeTime(
+            this.screen.tree.setTreeTime(
               Math.floor(i.x/this.screen.edgeSize),
               Math.floor(i.y/this.screen.edgeSize),
               i.t)

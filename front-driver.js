@@ -92,9 +92,9 @@ $(window).bind("keydown",function(e) {
     $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
     if(e.ctrlKey){
       screen.two.update()
+      screen.checkRequery()
     }else{
       screen.selectRectCanvas.update()
-      screen.checkRequery()
     }
   }
   if(65<=e.keyCode && e.keyCode<=87){

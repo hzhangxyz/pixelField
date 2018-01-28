@@ -94,6 +94,7 @@ function main(){
       wsList.delete(ws)
     })
     ws.on('message', function(msg){
+   
       try{
         var data = JSON.parse(msg);
         if(data.length!=0){
