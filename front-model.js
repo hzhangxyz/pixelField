@@ -89,20 +89,21 @@ function getTreeNode(arg){
       }
       if(!this.flag[keyName]){
         this.flag[keyName] = 1
-        setTimeout(()=>this.addPointsOne(keyName),savePeriod)
+        var tmp = keyName
+        setTimeout(this.addPointsOne(tmp,this),savePeriod)
       }
     }
   }
-  TreeNode.addPointsOne = async function(key){
-    while(this.lock[key]){
+  TreeNode.addPointsOne = (key,that)=>async()=>{
+    while(that.lock[key]){
       await sleep(savePeriod)
     }
 
-    this.lock[key] = 1
-    delete this.flag[key]
-    var preTmp = this.tmp[key]
-    delete this.tmp[key]
-    var preTree = this.getItem(key)
+    that.lock[key] = 1
+    delete that.flag[key]
+    var preTmp = that.tmp[key]
+    delete that.tmp[key]
+    var preTree = that.getItem(key)
 
     var tmp = []
     for(var i=0;i<preTmp.length;i++){
@@ -137,9 +138,9 @@ function getTreeNode(arg){
       }
     }
     var res = JSON.stringify(newTree.concat(tmp))
-    await this.setItem(key,res)
+    await that.setItem(key,res)
 
-    delete this.lock[key]
+    delete that.lock[key]
   }
 
   return TreeNode

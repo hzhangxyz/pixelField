@@ -6,7 +6,7 @@
   "scripts": {
     "build": "sh -x build.sh 2>&1",
     "debug": "DEBUG=--no-babelrc sh +x build.sh",
-    "mongodb": "mongod --dbpath=./data --logpath=./data/log",
+    "mongodb": "mkdir -p data && mongod --dbpath=./data --logpath=./data/log",
     "cleardb": "mongo --eval 'db.tree.drop()' pixelField",
     "start": "node ./build/`git rev-parse HEAD`/app.js || nodejs ./build/`git rev-parse HEAD`/app.js"
   },
