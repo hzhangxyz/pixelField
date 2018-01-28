@@ -136,18 +136,32 @@ function getTreeNode(arg){
     },savePeriod);
   }
   treeSchema.pre("save",function(next){
-    for(var i=this.data.length-1;i>=this.lastTop;i--){
-      for(var j=0;j<i;j++){
+    var tmp = []
+    for(var i=0;i<this.lastTop;i++){
+      var flag = true;
+      for(var j=this.lastTop;j<this.data.length;j++){
         if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
-          this.data.splice(j,1);
-          i--;
-          j--;
-          if(j<this.lastTop){
-            this.lastTop--;
-          }
+          flag = false;
+          break;
         }
       }
+      if(flag){
+        tmp.push(this.data[i])
+      }
     }
+    for(var i=this.lastTop;i<this.data.length;i++){
+      var flag = true;
+      for(var j=i+1;j<this.data.length;j++){
+        if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
+          flag = false;
+          break;
+        }
+      }
+      if(flag){
+        tmp.push(this.data[i])
+      }
+    }
+    this.data = tmp;
     this.lastTop = this.data.length
     next()
   })
