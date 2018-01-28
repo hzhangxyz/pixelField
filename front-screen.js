@@ -2,7 +2,12 @@
 
 function getWs(closeFunc){
   return new Promise((resolve)=>{
-    var ws = new WebSocket((location.origin+location.pathname).replace("http","ws"));
+    var  ws = new WebSocket((location.origin+location.pathname)
+      .replace("http","ws")
+      .replace("index.html","")
+      .replace("m.html","")
+      .replace("m","")
+    );
     ws.onclose = closeFunc;
     ws.addPoints=async (points)=>{
       //console.log(args)
@@ -57,7 +62,11 @@ class Screen{
       }
     })
 
-    this.unitSize = 10; // 一个点的大小
+    if(argv.isMobile){
+      this.unitSize = 20
+    }else{
+      this.unitSize = 10; // 一个点的大小
+    }
     this.cacheParam = 2 // 预加载周围多大的范围
     this.edgeSize = 128;
     this.offsetX = this.two.width/2;

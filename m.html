@@ -1,20 +1,17 @@
 <title>Pixel Field</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<link href="https://cdn.bootcss.com/jquery-mobile/1.4.5/jquery.mobile.min.css" rel="stylesheet">
 <body style="background:white;">
 <div id="loading"><p style="margin: 0;position: fixed">loading.<span id=dots></span></p></div>
 <div id="loaded" style="display: none">
 <div id=container></div>
 <div id=picker style="padding: 5;position: fixed;">
-<input type=color id=color></input>
-<button id=button>color it</button>
-<button id=clear>clear all</button>
 <span id=position style="color: black"></span>
 <span id=closed style="color: red"></span>
-
-<script>
-  if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
-    location.pathname += "m"
-  }
-</script>
+<div style="display:inline"><input type=color id=color></input></div>
+<button id=button>color it</button>
+<button id=clear>clear all</button>
+<style>.ui-body-inherit{width:0}</style>
 
 <script src="https://cdn.bootcss.com/two.js/0.7.0-alpha.1/two.min.js"></script>
 <script src="https://cdn.bootcss.com/babel-polyfill/7.0.0-beta.3/polyfill.min.js"></script>
@@ -24,3 +21,5 @@
 <script src="./front-model.js"></script>
 <script src="./front-screen.js"></script>
 <script src="./front-driver.js"></script>
+
+<script src="http://code.jquery.com/mobile/1.5.0-alpha.1/jquery.mobile-1.5.0-alpha.1.min.js"></script>

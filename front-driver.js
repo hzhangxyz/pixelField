@@ -1,5 +1,7 @@
 "use strict"
 
+var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
 // html 相关的
 
 var screen =  new Screen({
@@ -20,7 +22,8 @@ var screen =  new Screen({
     return [parseInt(color.substr(1,2),16),
       parseInt(color.substr(3,2),16),
       parseInt(color.substr(5,2),16)]
-  }
+  },
+  isMobile
 });
 screen.init()
 
@@ -154,3 +157,31 @@ $("#clear").on("click",()=>screen.clearCanvas())
 //人性化响应
 
 $("#color").on("change",()=>$("#color").blur())
+
+// mobile
+
+if(isMobile){
+  $(window).on("load",()=>{
+    $("#container").on("touchstart",(e)=>{
+      //screen.selectX = Math.round((e.pageX - screen.offsetX)/screen.unitSize);
+      //screen.selectY = Math.round((e.pageY - screen.offsetY)/screen.unitSize);
+      //location.hash=`${screen.selectX},${screen.selectY}`;
+      //$("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
+      var startX=e.touches[0].clientX;
+      var startY=e.touches[0].clientY;
+      var tmpOffsetX = screen.offsetX;
+      var tmpOffsetY = screen.offsetY;
+      screen.selectRectCanvas.update()
+      $("#container").on("touchmove",(es)=>{
+        screen.offsetX = es.touches[0].clientX - startX + tmpOffsetX
+        screen.offsetY = es.touches[0].clientY - startY + tmpOffsetY
+        screen.two.update()
+        screen.selectRectCanvas.update()
+      });
+    })
+    $("#container").on("touchend",(e)=>{
+      $("#container").off("mousemove")
+      screen.checkRequery()
+    })
+  })
+}
