@@ -31,9 +31,9 @@ function getTreeNode(arg){
     var res = await this.getItem(this.getTreeTimeName(x,y))
     //console.log(x,y,res)
     if(res){
-      return parseInt(res);
+      return {x,y,time:parseInt(res)};
     }else{
-      return 0;
+      return {x,y,time:0};
     }
   }
   TreeNode.coverTime = async function(x1,y1,x2,y2,t){
@@ -60,18 +60,19 @@ function getTreeNode(arg){
         meta.push(this.getTreeTime(x,y))
       }
     }
-    return Math.min(...await Promise.all(meta))
+    return await Promise.all(meta)
   }
 
-  TreeNode.query = async function(x1,y1,x2,y2){
-    var xs = Math.floor(x1/edgeSize)
-    var xe = Math.floor(x2/edgeSize)
-    var ys = Math.floor(y1/edgeSize)
-    var ye = Math.floor(y2/edgeSize)
-    var meta = [];
-    for(var x=xs;x<=xe;x++){
-      for(var y=ys;y<=ye;y++){
-        meta.push(this.queryOne(this.getTreeName(x,y)))
+  TreeNode.query = async function(queryList){
+    var meta = []
+    for(var i of queryList){
+      var name = this.getTreeName(i.x,i.y)
+      if(typeof this.queried == "undefined"){
+        this.queried = new Set()
+      }
+      if(!this.queried.has(name)){
+        meta.push(this.queryOne(name))
+        this.queried.add(name)
       }
     }
     return await Promise.all(meta)

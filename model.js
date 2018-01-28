@@ -9,7 +9,8 @@ function getTreeNode(arg){
   }
 
   var edgeSize = arg.edgeSize || 128;
-  var edgeMax = arg.edgeMax || 2048;
+  var queryMax = arg.queryMax || 100;
+  var addMax = arg.addMax || 100;
   var savePeriod = arg.savePeriod || 1000;
   var keepAliveTime = arg.keepAliveTime || 1000;
   var url = arg.url || "mongodb://localhost:27017/pixelField"
@@ -69,6 +70,9 @@ function getTreeNode(arg){
     }
   };
   treeSchema.statics.addPoints = async function(data){
+    if(data.length > addMax){
+      return
+    }
     for(var i of data){
       try{
         var tree = await this.getTree(i.x/edgeSize,i.y/edgeSize)
@@ -82,6 +86,7 @@ function getTreeNode(arg){
   treeSchema.statics.queryOne = async function(x,y,t){
     var tree = await this.getTree(x,y,false);
     var res = [];
+    var resTime = t;
     if(tree){
       var time = new Date(t);
       for(var i=tree.data.length-1;i>=0;i--){
@@ -89,29 +94,24 @@ function getTreeNode(arg){
           break;
         }
         var tmp = tree.data[i]
-        delete tmp._id
-        tmp.t = (new Date(tmp.t)).getTime()
-        res.push(tmp)
+        res.push({x:tmp.x,y:tmp.y,r:tmp.r,g:tmp.g,b:tmp.b,t:(new Date(tmp.t)).getTime()})
+      }
+      if(tree.data.length!=0){
+        resTime = (new Date(tree.data[tree.data.length-1].t)).getTime()
       }
     }
-    return res
+    return {x,y,data:res,time:resTime}
   }
-  treeSchema.statics.query = async function(x1,y1,x2,y2,t){
-    if(x2-x1 > edgeMax || y2-y1 > edgeMax){
+  treeSchema.statics.query = async function(queryList){
+    if(queryList.length > queryMax){
       return []
     }
-    var xs = Math.floor(x1/edgeSize)
-    var xe = Math.floor(x2/edgeSize)
-    var ys = Math.floor(y1/edgeSize)
-    var ye = Math.floor(y2/edgeSize)
     var meta = [];
-    for(var x=xs;x<=xe;x++){
-      for(var y=ys;y<=ye;y++){
-        meta.push(this.queryOne(x,y,t))
-      }
+    for(var i of queryList){
+        meta.push(this.queryOne(i.x,i.y,i.time))
     }
     var data = await Promise.all(meta)
-    return data // [[{},{}...],[{},{}...]...] 且逆向覆盖形式的有效 
+    return data
   };
   treeSchema.statics.dropData = function(){
     this.collection.drop();

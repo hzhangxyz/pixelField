@@ -6,15 +6,19 @@ function getWs(closeFunc){
     ws.onclose = closeFunc;
     ws.addPoints=async (points)=>{
       //console.log(args)
-      ws.send(JSON.stringify(points[0]))
+      ws.send(JSON.stringify(points))
     }
-    ws.query=(x1, y1, x2, y2, time)=>{
+    ws.query=(range)=>{
       //console.log(time)
-      ws.send(JSON.stringify({time, x1, y1, x2, y2}));
+      ws.send(JSON.stringify(range));
     }
     // ws.query 与 tree.query 不一样
     ws.onopen=()=>{
-      setInterval(()=>ws.send("{}"),30000)
+      setInterval(()=>{
+        if(ws.readyState==1){
+          ws.send("[]")
+        }
+      },30000)
       resolve(ws)
     }
   })
@@ -55,6 +59,7 @@ class Screen{
 
     this.unitSize = 10; // 一个点的大小
     this.cacheParam = 2 // 预加载周围多大的范围
+    this.edgeSize = 128;
     this.offsetX = this.two.width/2;
     this.offsetY = this.two.height/2;
 
@@ -99,18 +104,21 @@ class Screen{
     this.ws.onmessage = async function(evt) {//this is this.ws
       var num = 0;
       var recv = JSON.parse(evt.data)
-      var times = [];
-      for(var i of recv.data){
-        this.screen.addPoints(i,"s")
-        num += i.length
-        if(i[0]){
-          times.push(i[0].t)
+      if(recv.length!=0){
+        if(typeof recv[0].time != "undefined"){
+          for(var i of recv){
+            this.screen.addPoints(i.data,"s")
+            num += i.data.length
+            await this.screen.tree.setTreeTime(i.x,i.y,i.time)
+          }
+          console.log("server",num)
+          this.screen.two.update()
         }
-      }
-      console.log("server",num)
-      this.screen.two.update()
-      if(times.length!=0){
-        await this.screen.tree.coverTime(recv.x1,recv.y1,recv.x2,recv.y2,Math.max(...times))
+        if(typeof recv[0].t != "undefined"){
+          this.screen.addPoints(recv)
+          console.log("server fresh",recv.length)
+          this.screen.two.update()
+        }
       }
     };
     await this.query()
@@ -119,9 +127,9 @@ class Screen{
   }
   async query(){
     if(this.useServer){
-      this.ws.query(...await this.getRange());
+      this.ws.query(await this.getRange());
     }
-    var data = await this.tree.query(...await this.getRange());
+    var data = await this.tree.query(await this.getRange());/// !!!!
     var num = 0
     for(var i of data){
       this.addPoints(i,"l");
@@ -137,8 +145,7 @@ class Screen{
     var y = -this.offsetY/this.unitSize;
     var c = this.cacheParam
     var res = [ x - c*w, y - c*h, x + (1+c)*w, y + (1+c)*h]
-    var t = await this.tree.queryTime(...res)
-    return [...res,t]
+    return await this.tree.queryTime(...res)
   }
   addPoints(points, flag){
     if(flag!="l"){
@@ -147,7 +154,6 @@ class Screen{
     if(flag=="h" && this.useServer){
       this.ws.addPoints(points)
     }
-
     var l = points.length
     for(var i=0;i<l;i++){
       var point

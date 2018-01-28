@@ -16,10 +16,15 @@ function main(){
       type: "number",
       describe: "unit cell size"
     })
-    .option("edgeMax",{
-      default: 2048,
+    .option("queryMax",{
+      default: 100,
       type: "number",
-      describe: "max query size"
+      describe: "max query cell number"
+    })
+    .option("addMax",{
+      default: 100,
+      type: "number",
+      describe: "max add point number"
     })
     .option("savePeriod",{
       default: 1000,
@@ -60,6 +65,8 @@ function main(){
   var app = express()
   var expressWs = require("express-ws")(app);
 
+  var assert = require('assert')
+
   var TreeNode = require("./model.js").getTreeNode(argv)
 
   var timeout = argv.timeout;
@@ -89,28 +96,28 @@ function main(){
     ws.on('message', function(msg){
       try{
         var data = JSON.parse(msg);
-        //console.log(data)
-        if(isNum(data.time)){//Query
-          if(isNum(data.x1,data.y1,data.x2,data.y2,data.time)){
+        if(data.length!=0){
+          if(isNum(data[0].time)){//Query {x1,y1,x2,y2,time} => {x1,y1,x2,y2,time,data} | [{x,y,time},...] => [{x,y,time,data},...]
+            for(var i of data){
+              assert(isNum(i.x,i.y,i.time))
+            }
             ws.refreshTime = Date.now()
-            TreeNode.query(data.x1,data.y1,data.x2,data.y2,data.time).then((res)=>{
-              data.data = res
-              ws.send(JSON.stringify(data))
+            TreeNode.query(data).then((res)=>{
+              ws.send(JSON.stringify(res))
               //console.log(res)
             })
-          }else{
-            throw "Error Format"
-          }
-        }else if(isNum(data.t)){//add point
-          //console.log(data)
-          if(isNum(data.x,data.y,data.r,data.g,data.b,data.t)){
+          }else if(isNum(data[0].t)){//add point {x,y,r,g,b,t} | [{x,y,r,g,b,t},...]
+            //console.log(data)
+            for(var i of data){
+              assert(isNum(i.x,i.y,i.r,i.g,i.b,i.t))
+            }
             var time = Date.now()
             if(Math.abs(time-data.t)>timeerr){
               throw "Error Time"
             }
             ws.refreshTime = time
-            TreeNode.addPoints([data])
-            var toSend = JSON.stringify([[data]]);
+            TreeNode.addPoints(data)
+            var toSend = JSON.stringify(data);
             for(var i of wsList){
               if(i==ws){
                 continue
@@ -127,11 +134,7 @@ function main(){
                 i.close();
               }
             }
-          }else{
-            throw "Error Format"
           }
-        }else{
-          //console.log(data)
         }
       }catch(e){
         console.log(e)
