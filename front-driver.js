@@ -27,7 +27,7 @@ screen.init()
 //拖动的时候...
 
 $("#position").html(`X: ${screen.selectX}, Y: ${screen.selectY}`);
-$("#container").bind("mousedown",(e)=>{
+$("#container").on("mousedown",(e)=>{
   screen.selectX = Math.round((e.pageX - screen.offsetX)/screen.unitSize);
   screen.selectY = Math.round((e.pageY - screen.offsetY)/screen.unitSize);
   location.hash=`${screen.selectX},${screen.selectY}`;
@@ -37,26 +37,26 @@ $("#container").bind("mousedown",(e)=>{
   var tmpOffsetX = screen.offsetX;
   var tmpOffsetY = screen.offsetY;
   screen.selectRectCanvas.update()
-  $("#container").bind("mousemove",(es)=>{
+  $("#container").on("mousemove",(es)=>{
     screen.offsetX = es.pageX - startX + tmpOffsetX
     screen.offsetY = es.pageY - startY + tmpOffsetY
     screen.two.update()
     screen.selectRectCanvas.update()
   });
 })
-$("#container").bind("mouseup",(e)=>{
-  $("#container").unbind("mousemove")
+$("#container").on("mouseup",(e)=>{
+  $("#container").off("mousemove")
   screen.checkRequery()
 })
 
 if(screen.two.type != "SVGRenderer"){
-  $(window).bind("resize",()=>{
+  $(window).on("resize",()=>{
     screen.two.update()
     screen.selectRectCanvas.update()
   })
 }
 //一些键盘操作
-$(window).bind("keydown",function(e) {
+$(window).on("keydown",function(e) {
   if(e.keyCode == 32){
     //空格
     screen.colorIt();
@@ -148,9 +148,9 @@ $(window).bind("keydown",function(e) {
 });
 
 //color it
-$("#button").bind("click",()=>screen.colorIt())
-$("#clear").bind("click",()=>screen.clearCanvas())
+$("#button").on("click",()=>screen.colorIt())
+$("#clear").on("click",()=>screen.clearCanvas())
 
 //人性化响应
 
-$("#color").bind("change",()=>$("#color").blur())
+$("#color").on("change",()=>$("#color").blur())
