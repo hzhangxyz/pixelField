@@ -62,8 +62,8 @@ function getTreeNode(arg){
       if(!res){
         return null;
       }
-      this.world[x][y] = res;
       res.tmpData = []
+      this.world[x][y] = res;
       return res;
     }else{
       return this.world[x][y]
@@ -92,9 +92,20 @@ function getTreeNode(arg){
       for(var i of tree.data){
         if(time<i.t){
           var ts = (new Date(i.t)).getTime()
-          res.push({x:i.x,y:i.y,r:i.r,g:i:g,b:i.b,t:ts})
+          res.push({x:i.x,y:i.y,r:i.r,g:i.g,b:i.b,t:ts})
           if(resTime<ts){
             resTime = ts
+          }
+        }
+      }
+      if(t == 0){
+        for(var i of tree.tmpData){
+          if(time<i.t){
+            var ts = (new Date(i.t)).getTime()
+            res.push({x:i.x,y:i.y,r:i.r,g:i.g,b:i.b,t:ts})
+            if(resTime<ts){
+              resTime = ts
+            }
           }
         }
       }
@@ -130,7 +141,7 @@ function getTreeNode(arg){
       return;
     }
     this.saveFlag = 1
-    setTimeout(this.saveData,savePeriod);
+    setTimeout(()=>{this.saveData()},savePeriod);
   }
   treeSchema.methods.saveData = async function(){
     while(this.saveLock){
