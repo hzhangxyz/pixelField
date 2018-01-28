@@ -27,7 +27,7 @@ function main(){
       describe: "max add point number"
     })
     .option("savePeriod",{
-      default: 1000,
+      default: 10000,
       type: "number",
       describe: "interval to save"
     })

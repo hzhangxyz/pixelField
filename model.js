@@ -11,7 +11,7 @@ function getTreeNode(arg){
   var edgeSize = arg.edgeSize || 128;
   var queryMax = arg.queryMax || 100;
   var addMax = arg.addMax || 100;
-  var savePeriod = arg.savePeriod || 1000;
+  var savePeriod = arg.savePeriod || 10000;
   var keepAliveTime = arg.keepAliveTime || 1000;
   var url = arg.url || "mongodb://localhost:27017/pixelField"
   var collectionName = arg.collectionName || "tree"
@@ -63,7 +63,7 @@ function getTreeNode(arg){
         return null;
       }
       this.world[x][y] = res;
-      res.lastTop = res.data.length;
+      res.tmpData = []
       return res;
     }else{
       return this.world[x][y]
@@ -76,8 +76,8 @@ function getTreeNode(arg){
     for(var i of data){
       try{
         var tree = await this.getTree(i.x/edgeSize,i.y/edgeSize)
-        tree.data.push(i);
-        tree.saveData();
+        tree.tmpData.push({x:i.x,y:i.y,r:i.r,g:i.g,b:i.b,t:Date.now()});
+        tree.saveDataWrapper();
       }catch(e){
         console.log(e)
       }
@@ -89,15 +89,14 @@ function getTreeNode(arg){
     var resTime = t;
     if(tree){
       var time = new Date(t);
-      for(var i=tree.data.length-1;i>=0;i--){
-        if(time>=tree.data[i].t){
-          break;
+      for(var i of tree.data){
+        if(time<i.t){
+          var ts = (new Date(i.t)).getTime()
+          res.push({x:i.x,y:i.y,r:i.r,g:i:g,b:i.b,t:ts})
+          if(resTime<ts){
+            resTime = ts
+          }
         }
-        var tmp = tree.data[i]
-        res.push({x:tmp.x,y:tmp.y,r:tmp.r,g:tmp.g,b:tmp.b,t:(new Date(tmp.t)).getTime()})
-      }
-      if(tree.data.length!=0){
-        resTime = (new Date(tree.data[tree.data.length-1].t)).getTime()
       }
     }
     return {x,y,data:res,time:resTime}
@@ -126,45 +125,54 @@ function getTreeNode(arg){
     }
     await Promise.all(meta);
   }
-  treeSchema.methods.saveData = function(){
-    if(this.saveHandle){
+  treeSchema.methods.saveDataWrapper = function(){
+    if(this.saveFlag){
       return;
     }
-    this.saveHandle = setTimeout(()=>{
-      this.save()
-      delete this.saveHandle
-    },savePeriod);
+    this.saveFlag = 1
+    setTimeout(this.saveData,savePeriod);
   }
-  treeSchema.pre("save",function(next){
+  treeSchema.methods.saveData = async function(){
+    while(this.saveLock){
+      await sleep(savePeriod)
+    }
+    this.saveLock = 1
+    delete this.saveFlag
+
+    var preTmp = this.tmpData;
+    this.tmpData = []
+
     var tmp = []
-    for(var i=0;i<this.lastTop;i++){
-      var flag = true;
-      for(var j=this.lastTop;j<this.data.length;j++){
-        if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
+    for(var i=0;i<preTmp.length;i++){
+      var flag = true
+      for(var j=i+1;j<preTmp.length;j++){
+        if(preTmp[i].x == preTmp[j].x && preTmp[i].y == preTmp[j].y){
           flag = false;
-          break;
+          break
         }
       }
       if(flag){
-        tmp.push(this.data[i])
+        tmp.push(preTmp[i])
       }
     }
-    for(var i=this.lastTop;i<this.data.length;i++){
-      var flag = true;
-      for(var j=i+1;j<this.data.length;j++){
-        if(this.data[i].x == this.data[j].x && this.data[i].y == this.data[j].y){
+    var preRes = []
+    for(var i of this.data){
+      var flag = true
+      for(var j of tmp){
+        if(i.x == j.x && i.y == j.y){
           flag = false;
-          break;
+          break
         }
       }
       if(flag){
-        tmp.push(this.data[i])
+        preRes.push(i)
       }
     }
-    this.data = tmp;
-    this.lastTop = this.data.length
-    next()
-  })
+    var res = preRes.concat(tmp)
+    this.data = res;
+    await this.save()
+    delete this.saveLock
+  }
 
   var db = mongoose.createConnection(url,{keepAlive: 1000})
   var TreeNode = db.model(collectionName,treeSchema,collectionName);

@@ -111,26 +111,38 @@ $(window).on("keydown",function(e) {
       case 81:
         if(colorData[0]+scale<=255)
           colorData[0] += scale;
+        else
+          colorData[0] = 255
         break;
       case 87:
         if(colorData[1]+scale<=255)
           colorData[1] += scale;
+        else
+          colorData[1] = 255
         break;
       case 69:
         if(colorData[2]+scale<=255)
           colorData[2] += scale;
+        else
+          colorData[2] = 255
         break;
       case 65:
         if(colorData[0]-scale>=0)
           colorData[0] -= scale;
+        else
+          colorData[0] = 0
         break;
       case 83:
         if(colorData[1]-scale>=0)
           colorData[1] -= scale;
+        else
+          colorData[1] = 0
         break;
       case 68:
         if(colorData[2]-scale>=0)
           colorData[2] -= scale;
+        else
+          colorData[2] = 0
         break;
     }
     //q 81
