@@ -94,6 +94,8 @@ class Screen{
   checkRequery(){
     if(Math.abs(this.centorX-this.offsetX) > this.two.width || Math.abs(this.centorY-this.offsetY) > this.two.height){
       this.query()
+      this.centorX = this.offsetX
+      this.centorY = this.offsetY
     }
   }// 这样的话local的点会重复add ...!!!!!!!!!
   async init(){//query from local and server

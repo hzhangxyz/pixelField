@@ -44,7 +44,10 @@ $("#container").bind("mousedown",(e)=>{
     screen.selectRectCanvas.update()
   });
 })
-$("#container").bind("mouseup",(e)=>$("#container").unbind("mousemove"))
+$("#container").bind("mouseup",(e)=>{
+  $("#container").unbind("mousemove")
+  screen.checkRequery()
+})
 
 if(screen.two.type != "SVGRenderer"){
   $(window).bind("resize",()=>{
@@ -91,6 +94,7 @@ $(window).bind("keydown",function(e) {
       screen.two.update()
     }else{
       screen.selectRectCanvas.update()
+      screen.checkRequery()
     }
   }
   if(65<=e.keyCode && e.keyCode<=87){
