@@ -1,3 +1,3 @@
-移动到另一个地方后需要重新query server
+# Pixel Field
 
-手机端
+大概就是模仿/r/place做的一个无限大版本的东西...
