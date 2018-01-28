@@ -2,12 +2,9 @@
 
 function getWs(closeFunc){
   return new Promise((resolve)=>{
-    var  ws = new WebSocket((location.origin+location.pathname)
-      .replace("http","ws")
-      .replace("index.html","")
-      .replace("m.html","")
-      .replace("m","")
-    );
+    var url = (location.origin+location.pathname).replace("http","ws").split("/")
+    url[url.length-1] = ""
+    var ws = new WebSocket(url.join("/"));
     ws.onclose = closeFunc;
     ws.addPoints=async (points)=>{
       //console.log(args)
