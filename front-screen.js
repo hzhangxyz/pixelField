@@ -63,7 +63,7 @@ class Screen{
     })
 
     if(argv.isMobile){
-      this.unitSize = 20
+      this.unitSize = 10
     }else{
       this.unitSize = 10; // 一个点的大小
     }
