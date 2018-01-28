@@ -116,6 +116,12 @@ class Screen{
         }
         if(typeof recv[0].t != "undefined"){
           this.screen.addPoints(recv)
+          for(var i of recv){
+            await this.screen.tree.setTreeTime(
+              Math.floor(i.x/this.screen.edgeSize),
+              Math.floor(i.y/this.screen.edgeSize),
+              i.t)
+          }
           console.log("server fresh",recv.length)
           this.screen.two.update()
         }

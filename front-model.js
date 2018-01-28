@@ -36,19 +36,6 @@ function getTreeNode(arg){
       return {x,y,time:0};
     }
   }
-  TreeNode.coverTime = async function(x1,y1,x2,y2,t){
-    var xs = Math.floor(x1/edgeSize)
-    var xe = Math.floor(x2/edgeSize)
-    var ys = Math.floor(y1/edgeSize)
-    var ye = Math.floor(y2/edgeSize)
-    var meta = [];
-    for(var x=xs;x<=xe;x++){
-      for(var y=ys;y<=ye;y++){
-        meta.push(this.setTreeTime(x,y,t))
-      }
-    }
-    return await Promise.all(meta)
-  }
   TreeNode.queryTime = async function(x1,y1,x2,y2){
     var xs = Math.floor(x1/edgeSize)
     var xe = Math.floor(x2/edgeSize)
