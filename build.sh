@@ -1,7 +1,8 @@
 mkdir -p build
-node ./node_modules/babel-cli/bin/babel.js *.js -d ./build/ $DEBUG ||
-  nodejs ./node_modules/babel-cli/bin/babel.js *.js -d ./build/ $DEBUG
-cp ./index.html ./build/index.html
-cp ./m.html ./build/m.html
+DIR=`git rev-parse HEAD`
+node ./node_modules/babel-cli/bin/babel.js *.js -d ./build/$DIR $DEBUG ||
+  nodejs ./node_modules/babel-cli/bin/babel.js *.js -d ./build/$DIR $DEBUG
+cp ./index.html ./build/$DIR/index.html
+cp ./m.html ./build/$DIR/m.html
 cd ./build
-tar zcvf `git rev-parse HEAD`.tar.gz *.js *.html
+tar zcvf $DIR.tar.gz $DIR
