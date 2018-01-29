@@ -1,0 +1,3 @@
+language: node
+install: npm run install
+script: npm run build
