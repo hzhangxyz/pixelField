@@ -14,13 +14,18 @@ Infinite map version of /r/place
 ```
 npm install
 npm run build
+```
+
+# Run
+
+```
 npm run start
 ```
 
 # More detail
 
 ```
-node ./build/`git rev-parse HEAD`/app.js --help || nodejs ./build/`git rev-parse HEAD`/app.js --help
+npm run help
 ```
 
 # 问题

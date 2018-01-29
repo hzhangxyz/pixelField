@@ -8,7 +8,8 @@
     "debug": "DEBUG=--no-babelrc sh +x build.sh",
     "mongodb": "mkdir -p data && mongod --dbpath=./data --logpath=./data/log",
     "cleardb": "mongo --eval 'db.tree.drop()' pixelField",
-    "start": "node ./build/`git rev-parse HEAD`/app.js || nodejs ./build/`git rev-parse HEAD`/app.js"
+    "start": "node ./build/`git rev-parse HEAD`/app.js || nodejs ./build/`git rev-parse HEAD`/app.js || echo 'node not found or package not built'",
+    "help": "node ./build/`git rev-parse HEAD`/app.js --help || nodejs ./build/`git rev-parse HEAD`/app.js --help || echo 'node not found or package not built'"
   },
   "repository": {
     "type": "git",
