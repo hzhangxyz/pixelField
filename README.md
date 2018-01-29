@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hzhangxyz/pixelField.svg?branch=master)](https://travis-ci.org/hzhangxyz/pixelField)
+
 # Pixel Field
 
 Infinite map version of /r/place
