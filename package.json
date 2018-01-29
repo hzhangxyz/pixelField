@@ -8,8 +8,8 @@
     "debug": "DEBUG=--no-babelrc sh +x build.sh",
     "mongodb": "mkdir -p data && mongod --dbpath=./data --logpath=./data/log",
     "cleardb": "mongo --eval 'db.tree.drop()' pixelField",
-    "start": "node ./build/`git rev-parse HEAD`/app.js || nodejs ./build/`git rev-parse HEAD`/app.js || echo 'node not found or package not built'",
-    "help": "node ./build/`git rev-parse HEAD`/app.js --help || nodejs ./build/`git rev-parse HEAD`/app.js --help || echo 'node not found or package not built'"
+    "start": "node ./build/`git rev-parse HEAD`/app.js || nodejs ./build/`git rev-parse HEAD`/app.js || node ./app.js || nodejs ./app.js || echo 'node not found or package not built'",
+    "help": "node ./build/`git rev-parse HEAD`/app.js --help || nodejs ./build/`git rev-parse HEAD`/app.js --help || node ./app.js --help || nodejs ./app.js --help || echo 'node not found or package not built'"
   },
   "repository": {
     "type": "git",
@@ -26,9 +26,9 @@
   },
   "homepage": "https://github.com/hzhangxyz/pixelField#readme",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "express": "^4.16.2",
     "express-ws": "^3.0.0",
-    "mongodb": "^3.0.1",
     "mongoose": "^5.0.1",
     "yargs": "^11.0.0"
   },

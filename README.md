@@ -9,11 +9,17 @@ Infinite map version of /r/place
 - nodejs
 - mongodb
 
-# Installation
+# Installation from Repo
 
 ```
 npm install
 npm run build
+```
+
+# Installation from Build
+
+```
+npm install --production
 ```
 
 # Run
