@@ -98,14 +98,12 @@ function getTreeNode(arg){
           }
         }
       }
-      if(t == 0){
-        for(var i of tree.tmpData){
-          if(time<i.t){
-            var ts = (new Date(i.t)).getTime()
-            res.push({x:i.x,y:i.y,r:i.r,g:i.g,b:i.b,t:ts})
-            if(resTime<ts){
-              resTime = ts
-            }
+      for(var i of tree.tmpData){
+        if(time<i.t){
+          var ts = (new Date(i.t)).getTime()
+          res.push({x:i.x,y:i.y,r:i.r,g:i.g,b:i.b,t:ts})
+          if(resTime<ts){
+            resTime = ts
           }
         }
       }
