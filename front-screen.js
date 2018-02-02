@@ -2,26 +2,30 @@
 
 function getWs(closeFunc){
   return new Promise((resolve)=>{
-    var url = (location.origin+location.pathname).replace("http","ws").split("/")
-    url[url.length-1] = "ws"
-    var ws = new WebSocket(url.join("/"));
-    ws.onclose = closeFunc;
-    ws.addPoints=async (points)=>{
-      //console.log(args)
-      ws.send(JSON.stringify(points))
-    }
-    ws.query=(range)=>{
-      //console.log(time)
-      ws.send(JSON.stringify(range));
-    }
-    // ws.query 与 tree.query 不一样
-    ws.onopen=()=>{
-      setInterval(()=>{
-        if(ws.readyState==1){
-          ws.send("[]")
-        }
-      },30000)
-      resolve(ws)
+    try{
+      var url = (location.origin+location.pathname).replace("http","ws").split("/")
+      url[url.length-1] = "ws"
+      var ws = new WebSocket(url.join("/"));
+      ws.onclose = closeFunc;
+      ws.addPoints=async (points)=>{
+        //console.log(args)
+        ws.send(JSON.stringify(points))
+      }
+      ws.query=(range)=>{
+        //console.log(time)
+        ws.send(JSON.stringify(range));
+      }
+      // ws.query 与 tree.query 不一样
+      ws.onopen=()=>{
+        setInterval(()=>{
+          if(ws.readyState==1){
+            ws.send("[]")
+          }
+        },30000)
+        resolve(ws)
+      }
+    }catch(e){
+      closeFunc();
     }
   })
 }
