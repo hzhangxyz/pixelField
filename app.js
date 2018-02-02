@@ -88,7 +88,7 @@ function main(){
     return true;
   }
 
-  app.ws("/", function(ws, req) {
+  app.ws("/ws", function(ws, req) {
     ws.refreshTime = Date.now();
     wsList.add(ws);
     ws.on('close', function(){
