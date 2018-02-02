@@ -120,9 +120,6 @@ function main(){
             TreeNode.addPoints(data)
             var toSend = JSON.stringify(data);
             for(var i of wsList){
-              if(i==ws){
-                continue
-              }
               try{
                 if(time - i.refreshTime > timeout){
                   throw "Timeout"

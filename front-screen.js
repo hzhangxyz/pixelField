@@ -57,6 +57,9 @@ class Screen{
       if(!this.inited){
         this.query()
       }
+      if(this.inited){
+        location.reload()
+      }
     })
 
     if(argv.isMobile){
@@ -123,7 +126,7 @@ class Screen{
           this.screen.two.update()
         }
         if(typeof recv[0].t != "undefined"){
-          this.screen.addPoints(recv)
+          this.screen.addPoints(recv,"s")
           for(var i of recv){
             this.screen.tree.setTreeTime(
               Math.floor(i.x/this.screen.edgeSize),
@@ -162,17 +165,34 @@ class Screen{
     return await this.tree.queryTime(...res)
   }
   addPoints(points, flag){
-    if(flag!="l"){
-      this.tree.addPoints(points)
+    var screenFlag = false;
+    if(this.useServer){
+      if(flag=="h"){
+        this.ws.addPoints(points);
+      }
+      if(flag=="s"){
+        this.tree.addPoints(points);
+        screenFlag = true;
+      }
+      if(flag=="l"){
+        screenFlag = true;
+      }
+    }else{
+      if(flag=="h"){
+        this.ws.addPoints(points);
+        screenFlag = true
+      }
+      if(flag=="l"){
+        screenFlag = true
+      }
     }
-    if(flag=="h" && this.useServer){
-      this.ws.addPoints(points)
-    }
-    for(var point of points){
-      var rect = this.two.makeRectangle(point.x*this.unitSize, point.y*this.unitSize, this.unitSize, this.unitSize);
-      rect.fill = `rgb(${point.r},${point.g},${point.b})`
-      rect.noStroke()
-      this.group.add(rect)
+    if(screenFlag){
+      for(var point of points){
+        var rect = this.two.makeRectangle(point.x*this.unitSize, point.y*this.unitSize, this.unitSize, this.unitSize);
+        rect.fill = `rgb(${point.r},${point.g},${point.b})`
+        rect.noStroke()
+        this.group.add(rect)
+      }
     }
   }
   fresh(){//this is this.two
