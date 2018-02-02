@@ -179,7 +179,7 @@ class Screen{
       }
     }else{
       if(flag=="h"){
-        this.ws.addPoints(points);
+        this.tree.addPoints(points);
         screenFlag = true
       }
       if(flag=="l"){
