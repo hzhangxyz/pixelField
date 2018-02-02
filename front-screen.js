@@ -50,22 +50,6 @@ class Screen{
       type: this.twoType,
     }).appendTo(document.getElementById("container"));
 
-    this.tree = getTreeNode();
-
-    this.ws = getWs(()=>{
-      if(!this.inited){
-        this.loaded(this.dotter)
-      }
-      this.socketClose()
-      this.useServer = false;
-      if(!this.inited){
-        this.query()
-      }
-      if(this.inited){
-        location.reload()
-      }
-    })
-
     if(argv.isMobile){
       this.unitSize = 10
     }else{
@@ -90,6 +74,22 @@ class Screen{
 
     this.useServer = true;
     this.inited = false;
+
+    this.tree = getTreeNode();
+
+    this.ws = getWs(()=>{
+      if(!this.inited){
+        this.loaded(this.dotter)
+      }
+      this.socketClose()
+      this.useServer = false;
+      if(!this.inited){
+        this.query()
+      }
+      if(this.inited){
+        location.reload()
+      }
+    })
 
     this.group = this.two.makeGroup();
 
