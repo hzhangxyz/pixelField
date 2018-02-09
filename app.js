@@ -73,7 +73,7 @@ function main(){
   var timeerr = argv.timeerr;
 
   app.get('/', (req, res)=>{res.sendFile("index.html",{root: __dirname})})
-  app.get('/m', (req, res)=>{res.sendFile("m.html",{root: __dirname})})
+  app.get('/m.html', (req, res)=>{res.sendFile("m.html",{root: __dirname})})
   app.get('/front-model.js', (req, res)=>{res.sendFile("front-model.js",{root: __dirname})})
   app.get('/front-screen.js', (req, res)=>{res.sendFile("front-screen.js",{root: __dirname})})
   app.get('/front-driver.js', (req, res)=>{res.sendFile("front-driver.js",{root: __dirname})})
