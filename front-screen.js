@@ -39,7 +39,7 @@ class Screen{
 
     this.screen = this
 
-    this.twoType = Two.Types.svg
+    this.twoType = Two.Types.webgl
     this.two = new Two({
       fullscreen: true,
       type: this.twoType,
